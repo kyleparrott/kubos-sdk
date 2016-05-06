@@ -4,20 +4,10 @@
 
  Create a new project with kubos-rt added as a dependency:
  ```
- $ kubos_yt --init  
+ $ kubos --init  <module name> 
  ```
  Set target device: 
  ```
- $ kubos_yt --target <target> 
+ $ kubos --target <target> 
  ```
 
-### Building kubos_yt executable
-Install pyinstaller to bundle python scripts into executables:
-```
-$ pip install pyinstaller
-```
-
-Package python script into a linux executable:
-```
-$ pyinstaller --onefile kubos_yt.py
-```
