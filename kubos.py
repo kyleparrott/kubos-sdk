@@ -1,92 +1,67 @@
 #!/usr/bin/env python
-
 import argparse
 import json
 import os
-import subprocess
 import sys
-import urllib2 
-import xml.etree.ElementTree as ET
 
-from yotta import init, target
-from yotta.lib import component, globalconf
+from docker import Client
+import docker
 
-kubos_rt = 'kubos-rt'
-kubos_rt_branch = 'master'
-org_name = 'openkosmosorg'
-kubos_rt_full_path = '%s@%s/%s#%s' % (kubos_rt, org_name, kubos_rt, kubos_rt_branch)
-
-KubOS_manifest_url = 'https://raw.githubusercontent.com/openkosmosorg/kubos-manifest/master/default.xml'
-
-yotta_meta_file = '.yotta.json'
-yotta_install_path = '/usr/local/bin/yotta'
+container_name = 'kubostech/kubos-sdk'
 
 def main():
-    parser = argparse.ArgumentParser(description = 'Kubos SDK')
-    parser.add_argument('--init', nargs='?', type=str, help='Create a new module')
-    parser.add_argument('--target', nargs='?', type=str, const='_show_current_target_', help='Set target device')
+	parser = argparse.ArgumentParser('kubos-host script for Kubos SDK')
+	parser.add_argument('--update', action='store_true', help='pull latest sdk container')
+	args, unknown_args = parser.parse_known_args()
 
-    args, anonymous_args = parser.parse_known_args()
-    globalconf.set('interactive', False)
-    
-    if args.init:
-        _init(args.init)
-    elif args.target:
-        _target(args.target)
-    elif anonymous_args:
-        cmd(yotta_install_path, *anonymous_args)
-    else: 
-        parser.print_help()
+	if args.update:
+		update()
+	elif unknown_args:
+		pass_through(*unknown_args)
+	else:
+		parser.print_help()
+		pass_through('--help')
 
+def update(cli):
+	print "updating"
+	cli = get_cli()
+	for line in cli.pull(container_name, stream=True):
+	   print json.dumps(json.loads(line), indent=4)
 
-def _init(name):
-    print 'Initializing project: %s ...' % name
-    c = component.Component(os.getcwd())
-    c.description['name'] = name
-    c.description['bin'] = './source'
-    c.description['dependencies'] = {}
-    c.description['homepage'] = 'https://<homepage>'
-    c.description['dependencies']["kubos-rt"] = "".join([org_name, '/', kubos_rt, '#', kubos_rt_branch])
-    init.initNonInteractive(None, c)
+def pass_through(*args):
+	cwd = os.getcwd() 
+	cli = get_cli()
+	python = '/usr/bin/python'
+	sdk_script = '/kubos-sdk/kubos-sdk.py' 
+	kubos_sdk_cmd =  ' '.join([python, sdk_script])
+	arg_list = list(args)
+	arg_list.insert(0, kubos_sdk_cmd)
 
+	command = ' '.join(arg_list)
 
-def _target(args):
-    if args == '_show_current_target_':
-        show_target()
-    elif args:
-        set_target(args)
+	container_data = cli.create_container(image=container_name, command=command, working_dir=cwd, tty=True)
+	container_id = container_data['Id'].encode('utf8')
+	if container_data['Warnings']:
+		print "Warnings: ", container_data['Warnings']
 
+	cli.start(container_id, binds={
+		cwd : {
+			'bind': cwd,
+			'ro': False
+		}	
+	})
 
-def show_target():
-    current_target = get_current_target()
-    target_args = argparse.Namespace(plain = False,
-                                     set_target = None,
-                                     target = current_target)
-    target.displayCurrentTarget(target_args)
+	cli.stop(container_id)
+	container_output = cli.logs(container=container_id, stdout=True, stderr=True, stream=False)
+	print container_output
+	cli.remove_container(container_id)
 
-
-def set_target(new_target):
-    print 'Setting Target: %s' % new_target.split('@')[0]
-    globalconf.set('plain', False)
-    target_args = argparse.Namespace(set_target=new_target, save_global = False, no_install = False)
-    target.execCommand(target_args, '') 
-
-
-def get_current_target():    
-    with open(yotta_meta_file, 'r') as meta_file:
-        data = json.load(meta_file)
-        target_str = str(data['build']['target'])
-        return target_str.split(',')[0]
-
-
-def cmd(*args, **kwargs):
-    # print ' '.join(args)
-    try:
-        subprocess.check_call(args , **kwargs)
-    except subprocess.CalledProcessError, e:
-        print >>sys.stderr, 'Error executing command, giving up'
-        sys.exit(1)
+def get_cli():
+	if sys.platform.startswith('linux'):
+		return Client(base_url='unix://var/run/docker.sock') #use with docker-engine
+	elif sys.platform.startswith('darwin'):
+		return docker.from_env(assert_hostname=False) #use with docker-machine
 
 
 if __name__ == '__main__':
-    main()
+	main()
