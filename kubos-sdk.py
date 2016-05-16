@@ -32,7 +32,10 @@ def main():
     if args.init:
         _init(args.init)
     elif args.target:
-        _target(args.target)
+        if args.target == '_show_current_target_':
+            show_target()
+        else:
+            set_target(args)
     elif anonymous_args:
         cmd(yotta_install_path, *anonymous_args)
     else: 
@@ -41,20 +44,15 @@ def main():
 
 def _init(name):
     print 'Initializing project: %s ...' % name
+    kubos_rt_repo_path = "".join([org_name, '/', kubos_rt, '#', kubos_rt_branch])
     c = component.Component(os.getcwd())
     c.description['name'] = name
     c.description['bin'] = './source'
-    c.description['dependencies'] = {}
+    c.description['dependencies'] = {
+        'kubos-rt' : kubos_rt_repo_path
+    }
     c.description['homepage'] = 'https://<homepage>'
-    c.description['dependencies']["kubos-rt"] = "".join([org_name, '/', kubos_rt, '#', kubos_rt_branch])
     init.initNonInteractive(None, c)
-
-
-def _target(args):
-    if args == '_show_current_target_':
-        show_target()
-    elif args:
-        set_target(args)
 
 
 def show_target():
@@ -80,7 +78,6 @@ def get_current_target():
 
 
 def cmd(*args, **kwargs):
-    # print ' '.join(args)
     try:
         subprocess.check_call(args , **kwargs)
     except subprocess.CalledProcessError, e:

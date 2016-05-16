@@ -22,7 +22,7 @@ def main():
 		parser.print_help()
 		pass_through('--help')
 
-def update(cli):
+def update():
 	print "updating"
 	cli = get_cli()
 	for line in cli.pull(container_name, stream=True):
@@ -50,10 +50,11 @@ def pass_through(*args):
 			'ro': False
 		}	
 	})
+	container_output = cli.logs(container=container_id, stream=True)
+	for entry in container_output:
+		sys.stdout.write(entry)
 
 	cli.stop(container_id)
-	container_output = cli.logs(container=container_id, stdout=True, stderr=True, stream=False)
-	print container_output
 	cli.remove_container(container_id)
 
 def get_cli():
