@@ -3,6 +3,7 @@ import argparse
 import json
 import os
 import sys
+import time
 
 from docker import Client
 import docker
@@ -10,36 +11,61 @@ import docker
 container_name = 'kubostech/kubos-sdk'
 
 def main():
-	parser = argparse.ArgumentParser('kubos-host script for Kubos SDK')
-	parser.add_argument('--update', action='store_true', help='pull latest sdk container')
-	args, unknown_args = parser.parse_known_args()
+	parser = argparse.ArgumentParser('Kubos SDK')
+	subparser = parser.add_subparsers(dest='command', help='Available Kubos-sdk commands')
+	
+	init_parser   = subparser.add_parser('init', help='initialize a new kubos project in the current directory')
+	update_parser = subparser.add_parser('update', help='pull latest kubos-sdk docker container')
+	target_parser = subparser.add_parser('target', help='set or display the current target hardware platform')
 
-	if args.update:
+	init_parser.add_argument('proj_name', nargs=1, type=str)
+	target_parser.add_argument('target', nargs='?', type=str)
+	
+	init_parser.set_defaults(func=pass_through)
+	target_parser.set_defaults(func=pass_through)
+	update_parser.set_defaults(func=update)
+
+	args, unknown_args = parser.parse_known_args()
+	provided_args = vars(args)
+
+	command = provided_args['command']
+	if command == 'init':
+		proj_name = provided_args['proj_name'][0]
+		pass_through(command, proj_name)
+	elif command == 'target':
+		target = provided_args['target'] 
+		if target:
+			pass_through(command, target)
+		else:
+			pass_through(command)
+	elif command == 'update':
 		update()
-	elif unknown_args:
-		pass_through(*unknown_args)
-	else:
-		parser.print_help()
-		pass_through('--help')
+
 
 def update():
-	print "updating"
 	cli = get_cli()
 	for line in cli.pull(container_name, stream=True):
-	   print json.dumps(json.loads(line), indent=4)
+	   json_data = json.loads(line)
+	   if 'error' in json_data:
+	   		print json_data['error'].encode('utf8')
+	   elif 'progress' in json_data:
+	   		sys.stdout.write('\r%s' % json_data['progress'].encode('utf8'))
+	   		time.sleep(0.1)
+	   		sys.stdout.flush()
+   	   elif 'status' in json_data:
+	   		print json_data['status'].encode('utf8')
+
 
 def pass_through(*args):
 	cwd = os.getcwd() 
 	cli = get_cli()
 	python = '/usr/bin/python'
 	sdk_script = '/kubos-sdk/kubos-sdk.py' 
-	kubos_sdk_cmd =  ' '.join([python, sdk_script])
 	arg_list = list(args)
-	arg_list.insert(0, kubos_sdk_cmd)
+	arg_list.insert(0, python)
+	arg_list.insert(1, sdk_script)
 
-	command = ' '.join(arg_list)
-
-	container_data = cli.create_container(image=container_name, command=command, working_dir=cwd, tty=True)
+	container_data = cli.create_container(image=container_name, command=arg_list, working_dir=cwd, tty=True)
 	container_id = container_data['Id'].encode('utf8')
 	if container_data['Warnings']:
 		print "Warnings: ", container_data['Warnings']
@@ -56,6 +82,7 @@ def pass_through(*args):
 
 	cli.stop(container_id)
 	cli.remove_container(container_id)
+	
 
 def get_cli():
 	if sys.platform.startswith('linux'):

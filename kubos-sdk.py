@@ -16,30 +16,36 @@ kubos_rt_branch = 'master'
 org_name = 'openkosmosorg'
 kubos_rt_full_path = '%s@%s/%s#%s' % (kubos_rt, org_name, kubos_rt, kubos_rt_branch)
 
-KubOS_manifest_url = 'https://raw.githubusercontent.com/openkosmosorg/kubos-manifest/master/default.xml'
-
 yotta_meta_file = '.yotta.json'
 yotta_install_path = '/usr/local/bin/yotta'
 
-def main():
-    parser = argparse.ArgumentParser(description = 'Kubos SDK')
-    parser.add_argument('--init', nargs='?', type=str, help='Create a new module')
-    parser.add_argument('--target', nargs='?', type=str, const='_show_current_target_', help='Set target device')
+target_const = '_show_current_target_'
 
-    args, anonymous_args = parser.parse_known_args()
-    globalconf.set('interactive', False)
+def main():    
+    parser    = argparse.ArgumentParser('Kubos SDK')
+    subparser = parser.add_subparsers(dest='command')
     
-    if args.init:
-        _init(args.init)
-    elif args.target:
-        if args.target == '_show_current_target_':
-            show_target()
+    init_parser   = subparser.add_parser('init')
+    target_parser = subparser.add_parser('target')
+
+    init_parser.add_argument('proj_name', type=str, nargs=1)
+    target_parser.add_argument('target', nargs='?', type=str)
+    
+    args, unknown_args = parser.parse_known_args()
+    provided_args = vars(args)
+
+    globalconf.set('interactive', False)
+
+    command = provided_args['command'] 
+    if command == 'init':
+        proj_name = provided_args['proj_name'][0]
+        _init(proj_name)
+    elif command == 'target':
+        provided_target = provided_args['target']
+        if provided_target:
+            set_target(provided_target)
         else:
-            set_target(args)
-    elif anonymous_args:
-        cmd(yotta_install_path, *anonymous_args)
-    else: 
-        parser.print_help()
+            show_target()
 
 
 def _init(name):
@@ -55,12 +61,16 @@ def _init(name):
     init.initNonInteractive(None, c)
 
 
-def show_target():
+def show_target(): 
     current_target = get_current_target()
-    target_args = argparse.Namespace(plain = False,
-                                     set_target = None,
-                                     target = current_target)
-    target.displayCurrentTarget(target_args)
+    if current_target:
+        target_args = argparse.Namespace(plain = False,
+                                         set_target = None,
+                                         target = current_target)
+        target.displayCurrentTarget(target_args)
+    else:
+        print 'No target currently set'
+
 
 
 def set_target(new_target):
@@ -70,16 +80,20 @@ def set_target(new_target):
     target.execCommand(target_args, '') 
 
 
-def get_current_target():    
-    with open(yotta_meta_file, 'r') as meta_file:
-        data = json.load(meta_file)
-        target_str = str(data['build']['target'])
-        return target_str.split(',')[0]
-
+def get_current_target():
+    meta_file_path = os.path.join(os.getcwd(), yotta_meta_file)
+    if os.path.isfile(meta_file_path):
+        with open(meta_file_path, 'r') as meta_file:
+            data = json.load(meta_file)
+            target_str = str(data['build']['target'])
+            return target_str.split(',')[0]
+    else:
+        return None
+        
 
 def cmd(*args, **kwargs):
     try:
-        subprocess.check_call(args , **kwargs)
+        subprocess.check_call(args, **kwargs)
     except subprocess.CalledProcessError, e:
         print >>sys.stderr, 'Error executing command, giving up'
         sys.exit(1)
