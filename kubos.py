@@ -1,4 +1,20 @@
 #!/usr/bin/env python
+
+# Kubos SDK
+# Copyright (C) 2016 Kubos Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import argparse
 import json
 import os
@@ -11,8 +27,8 @@ import docker
 container_name = 'kubostech/kubos-sdk'
 
 def main():
-	parser = argparse.ArgumentParser('Kubos SDK')
-	subparser = parser.add_subparsers(dest='command', help='Available Kubos-sdk commands')
+	parser = argparse.ArgumentParser('kubos')
+	subparser = parser.add_subparsers(dest='command', help='Available kubos commands')
 	
 	init_parser   = subparser.add_parser('init', help='initialize a new kubos project in the current directory')
 	update_parser = subparser.add_parser('update', help='pull latest kubos-sdk docker container')
