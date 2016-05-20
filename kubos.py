@@ -1,4 +1,20 @@
 #!/usr/bin/env python
+
+# Kubos SDK
+# Copyright (C) 2016 Kubos Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import argparse
 import json
 import os
@@ -14,8 +30,8 @@ yotta_meta_file = '.yotta.json'
 module_file_name = 'module.json'
 
 def main():
-    parser = argparse.ArgumentParser('Kubos SDK')
-    subparser = parser.add_subparsers(dest='command', help='Available Kubos-sdk commands')
+    parser = argparse.ArgumentParser('kubos')
+    subparser = parser.add_subparsers(dest='command', help='Available kubos commands')
 
     build_parser  = subparser.add_parser('build', help='build the project in the current directory')
     flash_parser  = subparser.add_parser('flash', help='launch the built executable')

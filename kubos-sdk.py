@@ -1,5 +1,26 @@
 #!/usr/bin/env python
 
+# Kubos SDK
+# Copyright (C) 2016 Kubos Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# This is the kubos-sdk "target" script that is executed inside the kubostech/kubos-sdk 
+# docker container image. The project directory on the host is mounted
+# into a container instance, then this script executed commands such as: build, init and target
+# against the project directory.
+
 import argparse
 import json
 import os
@@ -22,7 +43,7 @@ yotta_install_path = '/usr/local/bin/yotta'
 target_const = '_show_current_target_'
 
 def main():    
-    parser    = argparse.ArgumentParser('Kubos SDK')
+    parser    = argparse.ArgumentParser('kubos-sdk')
     subparser = parser.add_subparsers(dest='command')
     
     init_parser   = subparser.add_parser('init')
@@ -89,9 +110,9 @@ def _build(unknown_args):
 def show_target(): 
     current_target = get_current_target()
     if current_target:
-        target_args = argparse.Namespace(plain = False,
-                                         set_target = None,
-                                         target = current_target)
+        target_args = argparse.Namespace(plain=False,
+                                         set_target=None,
+                                         target=current_target)
         target.displayCurrentTarget(target_args)
     else:
         print 'No target currently set'
