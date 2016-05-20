@@ -31,7 +31,6 @@ def main():
 
     init_parser.add_argument('proj_name', type=str, nargs=1)
     target_parser.add_argument('target', nargs='?', type=str)
-    build_parser.add_argument('--verbose', action='store_true', default=False)
 
     args, unknown_args = parser.parse_known_args()
     provided_args = vars(args)
@@ -49,7 +48,7 @@ def main():
         else:
             show_target()
     elif command == 'build':
-        _build(provided_args['verbose'])
+        _build(unknown_args)
 
 
 def _init(name):
@@ -64,7 +63,7 @@ def _init(name):
     c.description['homepage'] = 'https://<homepage>'
     init.initNonInteractive(None, c)
 
-def _build(verbose):
+def _build(unknown_args):
     globalconf.set('plain', False)
     current_target = get_current_target()
 
@@ -78,11 +77,8 @@ def _build(verbose):
                                   plain=False,
                                   release_build=True,
                                   registry=None)
-  
-    if verbose:
-        build_status = build.installAndBuild(args, ['-v'])
-    else: 
-        build_status = build.installAndBuild(args, None)
+    
+    build_status = build.installAndBuild(args, unknown_args)
     
     if all(value == 0 for value in build_status.values()):
         print '\nBuild Succeeded'

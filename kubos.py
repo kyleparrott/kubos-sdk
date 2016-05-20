@@ -23,7 +23,6 @@ def main():
     target_parser = subparser.add_parser('target', help='set or display the current target hardware platform')
     update_parser = subparser.add_parser('update', help='pull latest kubos-sdk docker container')
 
-    build_parser.add_argument('--verbose', action='store_true', default=False)
     init_parser.add_argument('proj_name', nargs=1, type=str)
     target_parser.add_argument('target', nargs='?', type=str)
     
@@ -48,10 +47,7 @@ def main():
     elif command == 'update':
         update()
     elif command == 'build':
-        if provided_args['verbose']:
-            pass_through(command, '--verbose')
-        else:
-            pass_through(command)
+        pass_through(command, *unknown_args)
     elif command == 'flash':
         flash()
 
@@ -111,12 +107,12 @@ def flash():
         exe_path =  os.path.join(os.getcwd(), 'build', current_target, 'source', project_name)
 
         if current_target.startswith('stm32'):
-            flash_script_path = str(os.path.join(install_dir, 'flash', 'openocd', 'flash.sh'))
+            flash_script_path = os.path.join(install_dir, 'flash', 'openocd', 'flash.sh')
             argument = 'stm32f4_flash %s' % exe_path
             subprocess.check_call(['/bin/sh', flash_script_path, argument])
         
         elif current_target.startswith('msp430'):
-            flash_script_path = str(os.path.join(install_dir, 'flash', 'mspdebug', 'flash.sh'))
+            flash_script_path = os.path.join(install_dir, 'flash', 'mspdebug', 'flash.sh')
             argument = 'prog %s' % exe_path
             subprocess.check_call(['/bin/sh', flash_script_path, argument])
     else:
@@ -133,7 +129,7 @@ def get_project_name():
     if os.path.isfile(module_file_path):
          with open(module_file_path, 'r') as module_file:
             data = json.load(module_file)
-            name = str(data['name'])
+            name = data['name']
             return name
     else:
         return None
