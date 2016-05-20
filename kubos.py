@@ -125,12 +125,12 @@ def flash():
         if current_target.startswith('stm32'):
             flash_script_path = os.path.join(install_dir, 'flash', 'openocd', 'flash.sh')
             argument = 'stm32f4_flash %s' % exe_path
-            subprocess.check_call(['/bin/sh', flash_script_path, argument])
+            subprocess.check_call(['/bin/bash', flash_script_path, argument])
         
         elif current_target.startswith('msp430'):
             flash_script_path = os.path.join(install_dir, 'flash', 'mspdebug', 'flash.sh')
             argument = 'prog %s' % exe_path
-            subprocess.check_call(['/bin/sh', flash_script_path, argument])
+            subprocess.check_call(['/bin/bash', flash_script_path, argument])
     else:
         print >>sys.stderr, 'Error: No target currently selected. Select a target and build before flashing'
 
