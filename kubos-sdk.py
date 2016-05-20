@@ -33,7 +33,7 @@ from yotta import build, init, target
 from yotta.lib import component, globalconf
 
 kubos_rt = 'kubos-rt'
-kubos_rt_branch = 'master'
+kubos_rt_branch = '~0.0.1'
 org_name = 'openkosmosorg'
 kubos_rt_full_path = '%s@%s/%s#%s' % (kubos_rt, org_name, kubos_rt, kubos_rt_branch)
 
