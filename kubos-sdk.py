@@ -29,7 +29,7 @@ import sys
 import urllib2 
 import xml.etree.ElementTree as ET
 
-from yotta import init, target
+from yotta import build, init, target
 from yotta.lib import component, globalconf
 
 kubos_rt = 'kubos-rt'
@@ -48,10 +48,11 @@ def main():
     
     init_parser   = subparser.add_parser('init')
     target_parser = subparser.add_parser('target')
+    build_parser  = subparser.add_parser('build')
 
     init_parser.add_argument('proj_name', type=str, nargs=1)
     target_parser.add_argument('target', nargs='?', type=str)
-    
+
     args, unknown_args = parser.parse_known_args()
     provided_args = vars(args)
 
@@ -67,6 +68,8 @@ def main():
             set_target(provided_target)
         else:
             show_target()
+    elif command == 'build':
+        _build(unknown_args)
 
 
 def _init(name):
@@ -81,6 +84,28 @@ def _init(name):
     c.description['homepage'] = 'https://<homepage>'
     init.initNonInteractive(None, c)
 
+def _build(unknown_args):
+    globalconf.set('plain', False)
+    current_target = get_current_target()
+
+    if target:
+        args = argparse.Namespace(config=None,
+                                  cmake_generator='Ninja',
+                                  debug=None,
+                                  generate_only=False,
+                                  interactive=False,
+                                  target=current_target,
+                                  plain=False,
+                                  release_build=True,
+                                  registry=None)
+    
+    build_status = build.installAndBuild(args, unknown_args)
+    
+    if all(value == 0 for value in build_status.values()):
+        print '\nBuild Succeeded'
+    else:
+        print '\nBuild Failed'
+
 
 def show_target(): 
     current_target = get_current_target()
@@ -91,7 +116,6 @@ def show_target():
         target.displayCurrentTarget(target_args)
     else:
         print 'No target currently set'
-
 
 
 def set_target(new_target):
@@ -118,7 +142,6 @@ def cmd(*args, **kwargs):
     except subprocess.CalledProcessError, e:
         print >>sys.stderr, 'Error executing command, giving up'
         sys.exit(1)
-
 
 if __name__ == '__main__':
     main()
