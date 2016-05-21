@@ -1,7 +1,9 @@
 #!/bin/bash
 
 this_dir=$(cd "`dirname "$0"`"; pwd)
-cmd=$1
+openocd=$1
+cmd=$2
+search_path=$3
 unamestr=`uname`
 
 if [[ "$unamestr" =~ "Linux" ]]; then
@@ -20,8 +22,8 @@ fi
 
 
 if [[ ! -z $cfg ]]; then
-	echo openocd -f $this_dir/$cfg -c \"$cmd\"
-	openocd -f $this_dir/$cfg -c "$cmd"
+	echo $openocd -f $this_dir/$cfg -s $search_path -c \"$cmd\" 
+	$openocd -f $this_dir/$cfg -s $search_path -c "$cmd" 
 else
 	echo "No compatible ST-Link device found"
 fi

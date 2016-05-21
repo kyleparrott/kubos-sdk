@@ -151,20 +151,56 @@ def flash():
             sys.exit(1)
 
         install_dir = os.path.dirname(os.path.realpath(__file__))
-        exe_path =  os.path.join(os.getcwd(), 'build', current_target, 'source', project_name)
+        proj_exe_path =  os.path.join(os.getcwd(), 'build', current_target, 'source', project_name)
+        kubos_dir = os.path.join(install_dir, '..', 'kubos') #the base directory that holds the bin/ lib/ and flash/ directories.
 
         if current_target.startswith('stm32'):
-            flash_script_path = os.path.join(install_dir, '..', 'flash', 'openocd', 'flash.sh')
-            argument = 'stm32f4_flash %s' % exe_path
-            subprocess.check_call(['/bin/bash', flash_script_path, argument])
-        
+            flash_openocd(proj_exe_path, kubos_dir)
         elif current_target.startswith('msp430'):
-            flash_script_path = os.path.join(install_dir, '..', 'flash', 'mspdebug', 'flash.sh')
-            argument = 'prog %s' % exe_path
-            subprocess.check_call(['/bin/bash', flash_script_path, argument])
+            flash_mspdebug(proj_exe_path, kubos_dir)
+           
     else:
         print >>sys.stderr, 'Error: No target currently selected. Select a target and build before flashing'
 
+
+def flash_openocd(proj_exe_path, kubos_dir):
+    if sys.platform.startswith('linux'):
+        openocd_exe = os.path.join(kubos_dir, 'bin', 'linux', 'openocd')
+        lib_path = os.path.join(kubos_dir, 'lib', 'linux')
+    elif sys.platform.startswith('darwin'):
+        openocd_exe = os.path.join(kubos_dir, 'bin', 'osx', 'openocd')
+        lib_path = os.path.join(kubos_dir, 'lib', 'osx')
+
+    check_env_var(lib_path)
+    openocd_dir = os.path.join(kubos_dir, 'flash', 'openocd')  
+    flash_script_path = os.path.join(openocd_dir, 'flash.sh')
+    argument = 'stm32f4_flash %s' % proj_exe_path
+    subprocess.check_call(['/bin/bash', flash_script_path, openocd_exe, argument, openocd_dir])
+
+
+def flash_mspdebug(proj_exe_path, kubos_dir):
+    if sys.platform.startswith('linux'):
+        mspdebug_exe = os.path.join(kubos_dir, 'bin', 'linux', 'mspdebug')
+        lib_path = os.path.join(kubos_dir, 'lib', 'linux')
+
+    elif sys.platform.startswith('darwin'):
+        mspdebug_exe = os.path.join(kubos_dir, 'bin', 'osx', 'mspdebug')
+        lib_path = os.path.join(kubos_dir, 'lib', 'osx')
+
+    check_env_var(lib_path)
+    flash_script_path = os.path.join(kubos_dir, 'flash', 'mspdebug', 'flash.sh')
+    argument = 'prog %s' % proj_exe_path
+    subprocess.check_call(['/bin/bash', flash_script_path, mspdebug_exe, argument])
+
+
+def check_env_var(path):
+    ld_lib_path = 'LD_LIBRARY_PATH'
+    if not hasattr(os.environ, ld_lib_path):
+        os.environ[ld_lib_path] = path
+    else:
+        os.environ[ld_lib_path] += ':%s' % path
+        
+    
 def get_cli():
     if sys.platform.startswith('linux'):
         return Client(base_url='unix://var/run/docker.sock') #use with docker-engine
