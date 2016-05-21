@@ -1,0 +1,15 @@
+{
+    "name": "kubos-sdk",
+    "version": "0.0",
+    "description": "Kubos SDK",
+    "author": "Kubos",
+    "author_email": "kyle@kubos.co",
+    "url": "http://github.com/openkosmosorg/kubos-sdk",
+    "scripts": [
+        "kubos"
+    ],
+    "install_requires": [
+        "yotta", 
+        "docker-py"
+    ]
+}
