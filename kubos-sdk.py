@@ -84,6 +84,7 @@ def _init(name):
     c.description['homepage'] = 'https://<homepage>'
     init.initNonInteractive(None, c)
 
+
 def _build(unknown_args):
     globalconf.set('plain', False)
     current_target = get_current_target()
@@ -121,7 +122,9 @@ def show_target():
 def set_target(new_target):
     print 'Setting Target: %s' % new_target.split('@')[0]
     globalconf.set('plain', False)
-    target_args = argparse.Namespace(set_target=new_target, save_global = False, no_install = False)
+    target_args = argparse.Namespace(set_target=new_target,
+                                     save_global=True,
+                                     no_install=False)
     target.execCommand(target_args, '') 
 
 
