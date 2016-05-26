@@ -29,7 +29,7 @@ import sys
 import urllib2 
 import xml.etree.ElementTree as ET
 
-from yotta import build, init, target
+from yotta import build, init, target, link, link_target
 from yotta.lib import component, globalconf
 
 kubos_rt = 'kubos-rt'
@@ -84,7 +84,9 @@ def _init(name):
     c.description['homepage'] = 'https://<homepage>'
     init.initNonInteractive(None, c)
 
+
 def _build(unknown_args):
+    local_link_deps()
     globalconf.set('plain', False)
     current_target = get_current_target()
 
@@ -116,13 +118,41 @@ def show_target():
         target.displayCurrentTarget(target_args)
     else:
         print 'No target currently set'
+        set_target('') #prints the available target list
 
 
 def set_target(new_target):
-    print 'Setting Target: %s' % new_target.split('@')[0]
-    globalconf.set('plain', False)
-    target_args = argparse.Namespace(set_target=new_target, save_global = False, no_install = False)
-    target.execCommand(target_args, '') 
+    if new_target != '':
+        print 'Setting Target: %s' % new_target.split('@')[0]
+
+    global_target_pth = os.path.join('/', 'usr', 'lib', 'yotta_targets')
+    target_list = os.listdir(global_target_pth)
+    available_target_list = []
+    
+    for targ in target_list:
+        if targ.startswith('target-'):
+            available_target_list.append(targ[7:])
+        else:
+            available_target_list.append(targ)
+    
+    if new_target in available_target_list:
+        globalconf.set('plain', False)
+        link_target_args = argparse.Namespace(target_or_path=new_target, 
+                                              config=None,
+                                              target=get_current_target() or new_target,
+                                              set_target=new_target,
+                                              save_global=False,
+                                              no_install=False)
+        link_target.execCommand(link_target_args, '')
+        target.execCommand(link_target_args, '')
+    else:
+        if new_target != '':
+            print >>sys.stderr, 'Error: Requested target %s not available. Available targets are:\n', new_target
+        else:
+            print >>sys.stderr, 'Available targets are:\n'
+        for _target in available_target_list:
+            print >>sys.stderr, _target
+        sys.exit(1)
 
 
 def get_current_target():
@@ -134,14 +164,18 @@ def get_current_target():
             return target_str.split(',')[0]
     else:
         return None
-        
 
-def cmd(*args, **kwargs):
-    try:
-        subprocess.check_call(args, **kwargs)
-    except subprocess.CalledProcessError, e:
-        print >>sys.stderr, 'Error executing command, giving up'
-        sys.exit(1)
+
+def local_link_deps():
+    root_module_path = os.path.join('/','usr', 'lib', 'yotta_modules')
+    for subdir in os.listdir(root_module_path):
+        if subdir == 'libcsp':
+            subdir = 'csp'
+        link_args = argparse.Namespace(module_or_path=subdir,
+                                       config=None,
+                                       target=get_current_target())
+        link.execCommand(link_args, None)
+
 
 if __name__ == '__main__':
     main()
