@@ -129,11 +129,11 @@ def set_target(new_target):
     target_list = os.listdir(global_target_pth)
     available_target_list = []
     
-    for targ in target_list:
-        if targ.startswith('target-'):
-            available_target_list.append(targ[7:])
-        else:
-            available_target_list.append(targ)
+    for subdir in target_list:
+        target_json = os.path.join(global_target_pth, subdir, 'target.json')
+        with open(target_json, 'r') as json_file:
+            data = json.load(json_file)
+            available_target_list.append(data['name'])
     
     if new_target in available_target_list:
         globalconf.set('plain', False)
@@ -147,7 +147,7 @@ def set_target(new_target):
         target.execCommand(link_target_args, '')
     else:
         if new_target != '':
-            print >>sys.stderr, 'Error: Requested target %s not available. Available targets are:\n', new_target
+            print >>sys.stderr, 'Error: Requested target %s not available. Available targets are:\n' % new_target
         else:
             print >>sys.stderr, 'Available targets are:\n'
         for _target in available_target_list:
@@ -169,9 +169,11 @@ def get_current_target():
 def local_link_deps():
     root_module_path = os.path.join('/','usr', 'lib', 'yotta_modules')
     for subdir in os.listdir(root_module_path):
-        if subdir == 'libcsp':
-            subdir = 'csp'
-        link_args = argparse.Namespace(module_or_path=subdir,
+        module_json = os.path.join(root_module_path, subdir, 'module.json')
+        with open(module_json, 'r') as json_file:
+            data = json.load(json_file)
+            module_name = data['name']
+        link_args = argparse.Namespace(module_or_path=module_name,
                                        config=None,
                                        target=get_current_target())
         link.execCommand(link_args, None)
