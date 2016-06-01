@@ -32,6 +32,20 @@ import xml.etree.ElementTree as ET
 from yotta import build, init, target
 from yotta.lib import component, globalconf
 
+# Temporarily override the argparse error handler that deals with undefined subcommands
+# to allow these subcommands to be passed to yotta. Before calling yotta
+# the error handler is set back to the standard argparse handler.
+
+original_check_value = argparse.ArgumentParser._check_value
+
+def kubos_check_value(self, action, value):
+    if action.choices is not None and value not in action.choices:
+        argparse.ArgumentParser._check_value = original_check_value
+        import yotta
+        yotta.main()
+
+argparse.ArgumentParser._check_value = kubos_check_value
+
 kubos_rt = 'kubos-rt'
 kubos_rt_branch = '~0.0.1'
 org_name = 'openkosmosorg'

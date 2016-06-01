@@ -25,6 +25,17 @@ import time
 from docker import Client
 import docker
 
+# Override the argparse error handler that deals with undefined subcommands
+# to allow these commands to be passed through to the container. The container
+# handles passing commands to yotta as well as subcommands unknown to yotta.
+
+def pass_through_check_value(self, action, value):
+    if action.choices is not None and value not in action.choices:
+        pass_through(value)
+        sys.exit()
+
+argparse.ArgumentParser._check_value = pass_through_check_value
+
 container_name = 'kubostech/kubos-sdk'
 yotta_meta_file = '.yotta.json'
 module_file_name = 'module.json'
