@@ -203,12 +203,21 @@ def check_env_var(path):
     else:
         os.environ[ld_lib_path] += ':%s' % path
 
+def check_docker_status(client):
+    try:
+        client.ping()
+    except:
+        print >>sys.stderr, 'Error: Unable to communicate with the Docker service. Please ensure this service is running and you have permission to access it.'
+        sys.exit(1)
 
 def get_cli():
     if sys.platform.startswith('linux'):
-        return Client(base_url='unix://var/run/docker.sock') #use with docker-engine
+        c = Client(base_url='unix://var/run/docker.sock') #use with docker-engine
     elif sys.platform.startswith('darwin'):
-        return docker.from_env(assert_hostname=False) #use with docker-machine
+        c = docker.from_env(assert_hostname=False) #use with docker-machine
+
+    check_docker_status(c)
+    return c
 
 def get_project_name():
     module_file_path = os.path.join(os.getcwd(), module_file_name)
