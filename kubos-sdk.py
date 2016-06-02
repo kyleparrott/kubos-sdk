@@ -139,7 +139,7 @@ def set_target(new_target):
         globalconf.set('plain', False)
         link_target_args = argparse.Namespace(target_or_path=new_target, 
                                               config=None,
-                                              target=get_current_target() or new_target,
+                                              target=new_target,
                                               set_target=new_target,
                                               save_global=False,
                                               no_install=False)
@@ -167,7 +167,7 @@ def get_current_target():
 
 
 def local_link_deps():
-    root_module_path = os.path.join('/','usr', 'lib', 'yotta_modules')
+    root_module_path = os.path.join('/','usr', 'local', 'lib', 'yotta_modules')
     for subdir in os.listdir(root_module_path):
         module_json = os.path.join(root_module_path, subdir, 'module.json')
         with open(module_json, 'r') as json_file:
