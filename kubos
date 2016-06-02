@@ -31,6 +31,7 @@ yotta_meta_file = '.yotta.json'
 module_file_name = 'module.json'
 
 def main():
+    argparse.ArgumentParser._check_value = pass_through_check_value
     parser = argparse.ArgumentParser('kubos')
     subparser = parser.add_subparsers(dest='command', help='Available kubos commands')
 
@@ -239,6 +240,16 @@ def get_current_target():
         return None
 
 
+# Override the argparse error handler that deals with undefined subcommands
+# to allow these commands to be passed through to the container. The container
+# handles passing commands to yotta as well as subcommands unknown to yotta.
+
+def pass_through_check_value(self, action, value):
+    if action.choices is not None and value not in action.choices:
+        pass_through(value)
+        sys.exit()
+
+
 class StatusSpinner(threading._Timer):
     def run(self):
         spinner = self.get_spinner()
@@ -247,7 +258,7 @@ class StatusSpinner(threading._Timer):
             sys.stdout.flush()
             time.sleep(0.1)
             sys.stdout.write('\b')
-    
+
     def get_spinner(self):
         while True:
             for symbol in '|/-\\':
@@ -267,3 +278,4 @@ def stop_spinner(spinner):
 
 if __name__ == '__main__':
     main()
+

@@ -42,7 +42,10 @@ yotta_install_path = '/usr/local/bin/yotta'
 
 target_const = '_show_current_target_'
 
+original_check_value = argparse.ArgumentParser._check_value
+
 def main():    
+    argparse.ArgumentParser._check_value = kubos_check_value
     parser    = argparse.ArgumentParser('kubos-sdk')
     subparser = parser.add_subparsers(dest='command')
     
@@ -146,5 +149,16 @@ def cmd(*args, **kwargs):
         print >>sys.stderr, 'Error executing command, giving up'
         sys.exit(1)
 
+# Temporarily override the argparse error handler that deals with undefined subcommands
+# to allow these subcommands to be passed to yotta. Before calling yotta
+# the error handler is set back to the standard argparse handler.
+
+def kubos_check_value(self, action, value):
+    if action.choices is not None and value not in action.choices:
+        argparse.ArgumentParser._check_value = original_check_value
+        import yotta
+        yotta.main()
+
 if __name__ == '__main__':
     main()
+
