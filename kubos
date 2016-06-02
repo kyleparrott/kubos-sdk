@@ -27,7 +27,8 @@ import docker
 
 from utils import version, container
 
-container_name = 'kubostech/kubos-sdk'
+container_repo = 'kubostech/kubos-sdk'
+container_tag = 'latest'
 yotta_meta_file = '.yotta.json'
 module_file_name = 'module.json'
 
@@ -78,7 +79,7 @@ def main():
 def update():
     print "Checking for latest KubOS-SDK.."
     cli = container.get_cli()
-    for line in cli.pull(container_name, stream=True):
+    for line in cli.pull(repository=container_repo, tag=container_tag, stream=True):
        json_data = json.loads(line)
        if 'error' in json_data:
             print json_data['error'].encode('utf8')
