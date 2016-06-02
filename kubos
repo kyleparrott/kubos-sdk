@@ -25,6 +25,8 @@ import time
 from docker import Client
 import docker
 
+from utils import version, container
+
 container_name = 'kubostech/kubos-sdk'
 yotta_meta_file = '.yotta.json'
 module_file_name = 'module.json'
@@ -38,6 +40,7 @@ def main():
     init_parser   = subparser.add_parser('init', help='initialize a new kubos project in the current directory')
     target_parser = subparser.add_parser('target', help='set or display the current target hardware platform')
     update_parser = subparser.add_parser('update', help='pull latest kubos-sdk docker container')
+    version_parser = subparser.add_parser('version', help='display version information')
 
     init_parser.add_argument('proj_name', nargs=1, type=str)
     target_parser.add_argument('target', nargs='?', type=str)
@@ -46,6 +49,7 @@ def main():
     init_parser.set_defaults(func=pass_through)
     target_parser.set_defaults(func=pass_through)
     update_parser.set_defaults(func=update)
+    version_parser.set_defaults(func=print_version)
 
     args, unknown_args = parser.parse_known_args()
     provided_args = vars(args)
@@ -67,11 +71,13 @@ def main():
         pass_through(command, *unknown_args)
     elif command == 'flash':
         flash()
+    elif command == 'version':
+        print_version()
 
 
 def update():
     print "Checking for latest KubOS-SDK.."
-    cli = get_cli()
+    cli = container.get_cli()
     for line in cli.pull(container_name, stream=True):
        json_data = json.loads(line)
        if 'error' in json_data:
@@ -84,10 +90,14 @@ def update():
             print json_data['status'].encode('utf8')
     print "All up to date!\n"
 
+def print_version():
+    print "KubOS-SDK:\t\t%s" % (version.get_kubos_sdk_version())
+    print "KubOS-SDK Container:\t%s" % (version.get_container_tag())
+
 
 def pass_through(*args):
     cwd = os.getcwd()
-    cli = get_cli()
+    cli = container.get_cli()
     python = '/usr/bin/python'
     sdk_script = '/kubos-sdk/kubos-sdk.py'
     arg_list = list(args)
@@ -116,7 +126,7 @@ def pass_through(*args):
 
 def fix_permissions(*args):
     cwd = os.getcwd()
-    cli = get_cli()
+    cli = container.get_cli()
     userstr = "%s:%s" % (os.getuid(), os.getgid())
     arg_list = list()
     arg_list.insert(0, "chown")
@@ -208,22 +218,6 @@ def check_env_var(path):
         os.environ[ld_lib_path] = path
     else:
         os.environ[ld_lib_path] += ':%s' % path
-
-def check_docker_status(client):
-    try:
-        client.ping()
-    except:
-        print >>sys.stderr, 'Error: Unable to communicate with the Docker service. Please ensure this service is running and you have permission to access it.'
-        sys.exit(1)
-
-def get_cli():
-    if sys.platform.startswith('linux'):
-        c = Client(base_url='unix://var/run/docker.sock') #use with docker-engine
-    elif sys.platform.startswith('darwin'):
-        c = docker.from_env(assert_hostname=False) #use with docker-machine
-
-    check_docker_status(c)
-    return c
 
 def get_project_name():
     module_file_path = os.path.join(os.getcwd(), module_file_name)
