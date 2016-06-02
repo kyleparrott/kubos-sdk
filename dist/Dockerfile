@@ -10,3 +10,5 @@ RUN cd /kubos-sdk/dist && ./repo sync
 RUN mv /kubos-sdk/dist/yotta_modules /usr/lib/yotta_modules
 
 RUN mv /kubos-sdk/dist/yotta_targets /usr/lib/yotta_targets
+
+RUN python /kubos-sdk/dist/symlink.py
