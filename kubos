@@ -109,7 +109,7 @@ def pass_through(*args):
     arg_list.insert(0, python)
     arg_list.insert(1, sdk_script)
 
-    container_data = cli.create_container(image=container_name, command=arg_list, working_dir=cwd, tty=True)
+    container_data = cli.create_container(image=container_repo, command=arg_list, working_dir=cwd, tty=True)
     container_id = container_data['Id'].encode('utf8')
     if container_data['Warnings']:
         print "Warnings: ", container_data['Warnings']
@@ -144,7 +144,7 @@ def fix_permissions(*args):
     arg_list.insert(2, cwd)
     arg_list.insert(3, "-R")
 
-    container_data = cli.create_container(image=container_name, command=arg_list, working_dir=cwd, tty=True)
+    container_data = cli.create_container(image=container_repo, command=arg_list, working_dir=cwd, tty=True)
 
     container_id = container_data['Id'].encode('utf8')
     if container_data['Warnings']:
