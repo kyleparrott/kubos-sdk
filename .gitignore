@@ -1,3 +1,4 @@
 build/
 dist/
 kubos_sdk.egg-info/
+*.pyc

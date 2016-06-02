@@ -26,7 +26,10 @@ import threading
 from docker import Client
 import docker
 
-container_name = 'kubostech/kubos-sdk'
+from utils import version, container
+
+container_repo = 'kubostech/kubos-sdk'
+container_tag = 'latest'
 yotta_meta_file = '.yotta.json'
 module_file_name = 'module.json'
 
@@ -40,24 +43,27 @@ def main():
     init_parser   = subparser.add_parser('init', help='initialize a new kubos project in the current directory')
     target_parser = subparser.add_parser('target', help='set or display the current target hardware platform')
     update_parser = subparser.add_parser('update', help='pull latest kubos-sdk docker container')
+    version_parser = subparser.add_parser('version', help='display version information')
 
     init_parser.add_argument('proj_name', nargs=1, type=str)
     target_parser.add_argument('target', nargs='?', type=str)
-    
+
     build_parser.set_defaults(func=pass_through)
     init_parser.set_defaults(func=pass_through)
     target_parser.set_defaults(func=pass_through)
     update_parser.set_defaults(func=update)
+    version_parser.set_defaults(func=print_version)
 
     args, unknown_args = parser.parse_known_args()
     provided_args = vars(args)
 
     command = provided_args['command']
     if command == 'init':
+        update()
         proj_name = provided_args['proj_name'][0]
         pass_through(command, proj_name)
     elif command == 'target':
-        target = provided_args['target'] 
+        target = provided_args['target']
         if target:
             pass_through(command, target)
         else:
@@ -68,13 +74,15 @@ def main():
         pass_through(command, *unknown_args)
     elif command == 'flash':
         flash()
+    elif command == 'version':
+        print_version()
 
 
 def update():
-    cli = get_cli()
+    print "Checking for latest KubOS-SDK.."
+    cli = container.get_cli()
     status_spinner = start_spinner()
-
-    for line in cli.pull(container_name, stream=True):
+    for line in cli.pull(repository=container_repo, tag=container_tag, stream=True):
        json_data = json.loads(line)
        if 'error' in json_data:
             print json_data['error'].encode('utf8')
@@ -84,19 +92,24 @@ def update():
             sys.stdout.flush()
        elif 'status' in json_data:
             print json_data['status'].encode('utf8')
+    print "All up to date!\n"
     stop_spinner(status_spinner)
+
+def print_version():
+    print "KubOS-SDK:\t\t%s" % (version.get_kubos_sdk_version())
+    print "KubOS-SDK Container:\t%s" % (version.get_container_tag())
 
 
 def pass_through(*args):
-    cwd = os.getcwd() 
-    cli = get_cli()
+    cwd = os.getcwd()
+    cli = container.get_cli()
     python = '/usr/bin/python'
-    sdk_script = '/kubos-sdk/kubos-sdk.py' 
+    sdk_script = '/kubos-sdk/kubos-sdk.py'
     arg_list = list(args)
     arg_list.insert(0, python)
     arg_list.insert(1, sdk_script)
 
-    container_data = cli.create_container(image=container_name, command=arg_list, working_dir=cwd, tty=True)
+    container_data = cli.create_container(image=container_repo, command=arg_list, working_dir=cwd, tty=True)
     container_id = container_data['Id'].encode('utf8')
     if container_data['Warnings']:
         print "Warnings: ", container_data['Warnings']
@@ -114,16 +127,16 @@ def pass_through(*args):
 
     cli.stop(container_id)
     cli.remove_container(container_id)
-    
+
     if sys.platform.startswith('linux'):
         fix_permissions()
     stop_spinner(status_spinner)
-    
+
 
 
 def fix_permissions(*args):
     cwd = os.getcwd()
-    cli = get_cli()
+    cli = container.get_cli()
     userstr = "%s:%s" % (os.getuid(), os.getgid())
     arg_list = list()
     arg_list.insert(0, "chown")
@@ -131,7 +144,7 @@ def fix_permissions(*args):
     arg_list.insert(2, cwd)
     arg_list.insert(3, "-R")
 
-    container_data = cli.create_container(image=container_name, command=arg_list, working_dir=cwd, tty=True)
+    container_data = cli.create_container(image=container_repo, command=arg_list, working_dir=cwd, tty=True)
 
     container_id = container_data['Id'].encode('utf8')
     if container_data['Warnings']:
@@ -168,7 +181,7 @@ def flash():
             flash_openocd(proj_exe_path, kubos_dir)
         elif current_target.startswith('msp430'):
             flash_mspdebug(proj_exe_path, kubos_dir)
-           
+
     else:
         print >>sys.stderr, 'Error: No target currently selected. Select a target and build before flashing'
 
@@ -182,10 +195,13 @@ def flash_openocd(proj_exe_path, kubos_dir):
         lib_path = os.path.join(kubos_dir, 'lib', 'osx')
 
     check_env_var(lib_path)
-    openocd_dir = os.path.join(kubos_dir, 'flash', 'openocd')  
+    openocd_dir = os.path.join(kubos_dir, 'flash', 'openocd')
     flash_script_path = os.path.join(openocd_dir, 'flash.sh')
     argument = 'stm32f4_flash %s' % proj_exe_path
-    subprocess.check_call(['/bin/bash', flash_script_path, openocd_exe, argument, openocd_dir])
+    try:
+        subprocess.check_call(['/bin/bash', flash_script_path, openocd_exe, argument, openocd_dir])
+    except subprocess.CalledProcessError:
+        pass
 
 
 def flash_mspdebug(proj_exe_path, kubos_dir):
@@ -200,7 +216,10 @@ def flash_mspdebug(proj_exe_path, kubos_dir):
     check_env_var(lib_path)
     flash_script_path = os.path.join(kubos_dir, 'flash', 'mspdebug', 'flash.sh')
     argument = 'prog %s' % proj_exe_path
-    subprocess.check_call(['/bin/bash', flash_script_path, mspdebug_exe, argument])
+    try:
+        subprocess.check_call(['/bin/bash', flash_script_path, mspdebug_exe, argument])
+    except subprocess.CalledProcessError:
+        pass
 
 
 def check_env_var(path):
@@ -209,13 +228,6 @@ def check_env_var(path):
         os.environ[ld_lib_path] = path
     else:
         os.environ[ld_lib_path] += ':%s' % path
-        
-    
-def get_cli():
-    if sys.platform.startswith('linux'):
-        return Client(base_url='unix://var/run/docker.sock') #use with docker-engine
-    elif sys.platform.startswith('darwin'):
-        return docker.from_env(assert_hostname=False) #use with docker-machine
 
 
 def get_project_name():
@@ -278,4 +290,3 @@ def stop_spinner(spinner):
 
 if __name__ == '__main__':
     main()
-
