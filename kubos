@@ -21,6 +21,7 @@ import os
 import sys
 import subprocess
 import time
+import threading
 
 from docker import Client
 import docker
@@ -30,6 +31,7 @@ yotta_meta_file = '.yotta.json'
 module_file_name = 'module.json'
 
 def main():
+    argparse.ArgumentParser._check_value = pass_through_check_value
     parser = argparse.ArgumentParser('kubos')
     subparser = parser.add_subparsers(dest='command', help='Available kubos commands')
 
@@ -70,6 +72,8 @@ def main():
 
 def update():
     cli = get_cli()
+    status_spinner = start_spinner()
+
     for line in cli.pull(container_name, stream=True):
        json_data = json.loads(line)
        if 'error' in json_data:
@@ -80,6 +84,7 @@ def update():
             sys.stdout.flush()
        elif 'status' in json_data:
             print json_data['status'].encode('utf8')
+    stop_spinner(status_spinner)
 
 
 def pass_through(*args):
@@ -95,6 +100,7 @@ def pass_through(*args):
     container_id = container_data['Id'].encode('utf8')
     if container_data['Warnings']:
         print "Warnings: ", container_data['Warnings']
+    status_spinner = start_spinner()
 
     cli.start(container_id, binds={
         cwd : {
@@ -108,8 +114,12 @@ def pass_through(*args):
 
     cli.stop(container_id)
     cli.remove_container(container_id)
+    
+    if sys.platform.startswith('linux'):
+        fix_permissions()
+    stop_spinner(status_spinner)
+    
 
-    fix_permissions()
 
 def fix_permissions(*args):
     cwd = os.getcwd()
@@ -207,6 +217,7 @@ def get_cli():
     elif sys.platform.startswith('darwin'):
         return docker.from_env(assert_hostname=False) #use with docker-machine
 
+
 def get_project_name():
     module_file_path = os.path.join(os.getcwd(), module_file_name)
     if os.path.isfile(module_file_path):
@@ -216,6 +227,7 @@ def get_project_name():
             return name
     else:
         return None
+
 
 def get_current_target():
     meta_file_path = os.path.join(os.getcwd(), yotta_meta_file)
@@ -227,5 +239,43 @@ def get_current_target():
     else:
         return None
 
+
+# Override the argparse error handler that deals with undefined subcommands
+# to allow these commands to be passed through to the container. The container
+# handles passing commands to yotta as well as subcommands unknown to yotta.
+
+def pass_through_check_value(self, action, value):
+    if action.choices is not None and value not in action.choices:
+        pass_through(value)
+        sys.exit()
+
+
+class StatusSpinner(threading._Timer):
+    def run(self):
+        spinner = self.get_spinner()
+        while True:
+            sys.stdout.write(spinner.next())
+            sys.stdout.flush()
+            time.sleep(0.1)
+            sys.stdout.write('\b')
+
+    def get_spinner(self):
+        while True:
+            for symbol in '|/-\\':
+                yield symbol
+
+
+def start_spinner():
+    spinner = StatusSpinner(0.1, None)
+    spinner.daemon = True
+    spinner.start()
+    return spinner
+
+
+def stop_spinner(spinner):
+    spinner.cancel()
+
+
 if __name__ == '__main__':
     main()
+
