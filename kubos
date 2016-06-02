@@ -30,6 +30,7 @@ yotta_meta_file = '.yotta.json'
 module_file_name = 'module.json'
 
 def main():
+    argparse.ArgumentParser._check_value = pass_through_check_value
     parser = argparse.ArgumentParser('kubos')
     subparser = parser.add_subparsers(dest='command', help='Available kubos commands')
 
@@ -237,7 +238,6 @@ def pass_through_check_value(self, action, value):
         pass_through(value)
         sys.exit()
 
-argparse.ArgumentParser._check_value = pass_through_check_value
 
 if __name__ == '__main__':
     main()
