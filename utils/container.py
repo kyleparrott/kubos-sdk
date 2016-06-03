@@ -1,5 +1,7 @@
 import sys
+import docker
 from docker import Client
+
 
 def get_cli():
     if sys.platform.startswith('linux'):
