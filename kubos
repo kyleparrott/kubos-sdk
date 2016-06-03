@@ -29,7 +29,7 @@ import docker
 from utils import version, container
 
 container_repo = 'kubostech/kubos-sdk'
-container_tag = 'latest'
+container_tag = '0.0.2'
 yotta_meta_file = '.yotta.json'
 module_file_name = 'module.json'
 
@@ -109,7 +109,8 @@ def pass_through(*args):
     arg_list.insert(0, python)
     arg_list.insert(1, sdk_script)
 
-    container_data = cli.create_container(image=container_repo, command=arg_list, working_dir=cwd, tty=True)
+    image_name = "%s:%s" % (container_repo, container_tag)
+    container_data = cli.create_container(image=image_name, command=arg_list, working_dir=cwd, tty=True)
     container_id = container_data['Id'].encode('utf8')
     if container_data['Warnings']:
         print "Warnings: ", container_data['Warnings']
@@ -144,7 +145,8 @@ def fix_permissions(*args):
     arg_list.insert(2, cwd)
     arg_list.insert(3, "-R")
 
-    container_data = cli.create_container(image=container_repo, command=arg_list, working_dir=cwd, tty=True)
+    image_name = "%s:%s" % (container_repo, container_tag)
+    container_data = cli.create_container(image=image_name, command=arg_list, working_dir=cwd, tty=True)
 
     container_id = container_data['Id'].encode('utf8')
     if container_data['Warnings']:
