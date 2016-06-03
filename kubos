@@ -177,8 +177,10 @@ def flash():
         proj_exe_path =  os.path.join(os.getcwd(), 'build', current_target, 'source', project_name)
         kubos_dir = os.path.join(install_dir, '..', 'kubos') #the base directory that holds the bin/ lib/ and flash/ directories.
 
-        if current_target.startswith('stm32'):
+        if current_target.startswith('stm32f407'):
             flash_openocd(proj_exe_path, kubos_dir)
+        elif current_target.startswith('stm32f405'):
+            flash_dfu_util(proj_exe_path, kubos_dir)
         elif current_target.startswith('msp430'):
             flash_mspdebug(proj_exe_path, kubos_dir)
 
@@ -203,6 +205,22 @@ def flash_openocd(proj_exe_path, kubos_dir):
     except subprocess.CalledProcessError:
         pass
 
+
+def flash_dfu_util(proj_exe_path, kubos_dir):
+    if sys.platform.startswith('linux'):
+        dfu_util_exe = os.path.join(kubos_dir, 'bin', 'linux', 'dfu-util')
+        lib_path = os.path.join(kubos_dir, 'lib', 'linux')
+    elif sys.platform.startswith('darwin'):
+        dfu_util_exe = os.path.join(kubos_dir, 'bin', 'osx', 'dfu-util')
+        lib_path = os.path.join(kubos_dir, 'lib', 'osx')
+
+    check_env_var(lib_path)
+    dfu_util_dir = os.path.join(kubos_dir, 'flash', 'dfu_util')
+    flash_script_path = os.path.join(dfu_util_dir, 'flash.sh')
+    try:
+        subprocess.check_call(['/bin/bash', flash_script_path, dfu_util_exe, proj_exe_path])
+    except subprocess.CalledProcessError:
+        pass
 
 def flash_mspdebug(proj_exe_path, kubos_dir):
     if sys.platform.startswith('linux'):
