@@ -3,7 +3,9 @@ MAINTAINER kyle@kubos.co
 
 RUN git clone https://github.com/openkosmosorg/kubos-sdk /kubos-sdk
 
-RUN cd /kubos-sdk/dist && ./repo init -u git://github.com/openkosmosorg/kubos-manifest -m docker-manifest.xml
+RUN cd /kubos-sdk && git checkout v0.0.2
+
+RUN cd /kubos-sdk/dist && ./repo init -u git://github.com/openkosmosorg/kubos-manifest -m docker-manifest.xml -b refs/tags/v0.0.2
 
 RUN cd /kubos-sdk/dist && ./repo sync
 
