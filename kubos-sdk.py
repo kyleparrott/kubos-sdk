@@ -90,6 +90,7 @@ def _init(name):
 
 def _build(unknown_args):
     local_link_deps()
+    link_mounted_modules()
     globalconf.set('plain', False)
     current_target = get_current_target()
 
@@ -180,6 +181,18 @@ def local_link_deps():
                                        config=None,
                                        target=get_current_target())
         link.execCommand(link_args, None)
+
+def link_mounted_modules():
+    cur_dir = os.getcwd()
+    mount_path = os.path.join('/', 'mnt')
+    link_args = argparse.Namespace(module_or_path=None,
+                                   config=None,
+                                   target=None)
+    for subdir in os.listdir(mount_path):
+        module_path = os.path.join(mount_path, subdir)
+        os.chdir(module_path)
+        link.execCommand(link_args, None)
+    os.chdir(cur_dir)
 
 
 # Temporarily override the argparse error handler that deals with undefined subcommands

@@ -41,17 +41,23 @@ def main():
     build_parser  = subparser.add_parser('build', help='build the project in the current directory')
     flash_parser  = subparser.add_parser('flash', help='launch the built executable')
     init_parser   = subparser.add_parser('init', help='initialize a new kubos project in the current directory')
+    link_parser   = subparser.add_parser('link', help='symlink a module to be used into another module')
     target_parser = subparser.add_parser('target', help='set or display the current target hardware platform')
+    remove_parser = subparser.add_parser('remove', help='remove a symlinked module')
     update_parser = subparser.add_parser('update', help='pull latest kubos-sdk docker container')
     version_parser = subparser.add_parser('version', help='display version information')
 
     init_parser.add_argument('proj_name', nargs=1, type=str)
+    link_parser.add_argument('path', nargs='?', type=str)
+    remove_parser.add_argument('module', nargs='?', type=str)
     target_parser.add_argument('target', nargs='?', type=str)
 
     build_parser.set_defaults(func=pass_through)
     init_parser.set_defaults(func=pass_through)
+    link_parser.set_defaults(func=link)
     target_parser.set_defaults(func=pass_through)
     update_parser.set_defaults(func=update)
+    remove_parser.set_defaults(func=remove)
     version_parser.set_defaults(func=print_version)
 
     args, unknown_args = parser.parse_known_args()
@@ -74,6 +80,10 @@ def main():
         pass_through(command, *unknown_args)
     elif command == 'flash':
         flash()
+    elif command == 'link':
+        link(provided_args['path'])
+    elif command == 'remove':
+        remove(provided_args['module'])
     elif command == 'version':
         print_version()
 
@@ -114,14 +124,22 @@ def pass_through(*args):
     container_id = container_data['Id'].encode('utf8')
     if container_data['Warnings']:
         print "Warnings: ", container_data['Warnings']
-    status_spinner = start_spinner()
 
-    cli.start(container_id, binds={
-        cwd : {
-            'bind': cwd,
-            'ro': False
-        }
-    })
+    bind_dirs = []
+    kubos_module_file = get_kubos_module_file()
+    if os.path.isfile(kubos_module_file):
+        with open(kubos_module_file, 'r') as module_file:
+            link_data = json.load(module_file)
+        for key in link_data:
+            #All linked modules are mounted at /mnt/<module_name>
+            mount_path = os.path.join('/', 'mnt', key)
+            path = '%s:%s' % (link_data[key], mount_path)
+            bind_dirs.append(path)
+    cwd_bind = '%s:%s' % (cwd, cwd)
+    bind_dirs.append(cwd_bind)
+
+    status_spinner = start_spinner()
+    cli.start(container_id, binds=bind_dirs)
     container_output = cli.logs(container=container_id, stream=True)
     for entry in container_output:
         sys.stdout.write(entry)
@@ -132,7 +150,6 @@ def pass_through(*args):
     if sys.platform.startswith('linux'):
         fix_permissions()
     stop_spinner(status_spinner)
-
 
 
 def fix_permissions(*args):
@@ -240,6 +257,56 @@ def flash_mspdebug(proj_exe_path, kubos_dir):
         subprocess.check_call(['/bin/bash', flash_script_path, mspdebug_exe, argument])
     except subprocess.CalledProcessError:
         pass
+
+
+def link(module_path):
+    if module_path:
+        module_path = os.path.abspath(module_path)
+    module_path = module_path or os.getcwd()
+    module_json = os.path.join(module_path, 'module.json')
+    if os.path.isfile(module_json):
+        with open(module_json, 'r') as mod_json:
+            module_data = json.load(mod_json)
+            module_name = module_data['name']
+    else:
+        print >>sys.stderr, 'Error, unable to link %s does not contain a module.json' % module_path
+        sys.exit(1)
+    kubos_file_path = get_kubos_module_file()
+    if os.path.isfile(kubos_file_path):
+        with open(kubos_file_path, 'r') as meta_file:
+            link_data = json.load(meta_file)
+            link_data[module_name] = module_path
+    else:
+        link_data = {module_name : module_path}
+    with open(kubos_file_path, 'w') as meta_file:
+        str_link_data = json.dumps(link_data)
+        meta_file.write(str_link_data)
+        print 'Successfully Linked %s: %s' % (module_name, module_path)
+
+
+def remove(module_name):
+    kubos_file_path = get_kubos_module_file() 
+    if os.path.isfile(kubos_file_path):
+        with open(kubos_file_path, 'r') as meta_file:
+            link_data = json.load(meta_file)
+        if module_name in link_data:
+            link_data.pop(module_name)
+            with open(kubos_file_path, 'w') as meta_file:
+                new_data = json.dumps(link_data)
+                meta_file.write(new_data)
+                print 'Successfully unlinked %s' % module_name
+        else:
+            print >>sys.stderr, 'Module %s is not currently linked' % module_name
+            sys.exit(1)
+    else:
+        print >>sys.stderr, 'No modules are currently linked. Nothing to unlink.'
+        sys.exit(1)
+
+
+def get_kubos_module_file():
+    home_dir = os.path.expanduser('~')
+    kubos_file_path = os.path.join(home_dir, '.kubos-sdk')
+    return kubos_file_path
 
 
 def check_env_var(path):
