@@ -24,9 +24,9 @@
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
-import urllib2 
 import xml.etree.ElementTree as ET
 
 from yotta import build, init, target, link, link_target
@@ -86,6 +86,14 @@ def _init(name):
     }
     c.description['homepage'] = 'https://<homepage>'
     init.initNonInteractive(None, c)
+    #Get and write kubos-rt-example source file to main.c
+    example_file = os.path.join('/', 'examples', 'kubos-rt-example', 'source', 'main.c')
+    main_file = os.path.join(os.getcwd(), 'source', 'main.c')
+    if not os.path.isfile(main_file): 
+        shutil.copyfile(example_file, main_file)
+        print 'Copied KubOS example to: %s ' % main_file
+    else:
+        print '%s - Already exists - Not overwriting with KubOS example.' % main_file
 
 
 def _build(unknown_args):

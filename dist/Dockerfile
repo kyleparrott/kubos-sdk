@@ -13,4 +13,6 @@ RUN mv /kubos-sdk/dist/yotta_modules /usr/lib/yotta_modules
 
 RUN mv /kubos-sdk/dist/yotta_targets /usr/lib/yotta_targets
 
+RUN mv /kubos-sdk/dist/examples /examples
+
 RUN python /kubos-sdk/dist/symlink.py
