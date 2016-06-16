@@ -11,3 +11,9 @@ def get_container_tag():
         tag_name = kubos_images[0]['RepoTags'][0]
         return tag_name.replace("kubostech/kubos-sdk:", "")
     return "None Found"
+
+
+def print_version():
+    print "KubOS-SDK:\t\t%s" % (version.get_kubos_sdk_version())
+    print "KubOS-SDK Container:\t%s" % (version.get_container_tag())
+
