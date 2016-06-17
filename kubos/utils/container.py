@@ -23,7 +23,7 @@ from . import status_spinner
 from project import get_local_link_file
 
 container_repo = 'kubostech/kubos-sdk'
-container_tag = '0.0.2'
+container_tag = '0.0.3'
 
 def get_cli():
     if sys.platform.startswith('linux'):
