@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from options import parser
-from utils import container, status_spinner
+from utils import container
 
 def addOptions(parser):
     pass

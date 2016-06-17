@@ -27,10 +27,6 @@ import docker
 from utils import container
 from options import parser
 
-container_repo = 'kubostech/kubos-sdk'
-container_tag = '0.0.2'
-yotta_meta_file = '.yotta.json'
-module_file_name = 'module.json'
 
 def splitList(l, at_value):
     r = [[]]
