@@ -37,9 +37,9 @@ def execCommand(args, following_args):
         proj_exe_path =  os.path.join(os.getcwd(), 'build', current_target, 'source', project_name)
         kubos_dir = resource_filename(__name__, '')
 
-        if current_target.startswith('stm32f407'):
+        if current_target.startswith('stm32f407') or current_target.startswith('na'):
             flash_openocd(proj_exe_path, kubos_dir)
-        elif current_target.startswith('stm32f405'):
+        elif current_target.startswith('pyboard'):
             flash_dfu_util(proj_exe_path, kubos_dir)
         elif current_target.startswith('msp430'):
             flash_mspdebug(proj_exe_path, kubos_dir)
