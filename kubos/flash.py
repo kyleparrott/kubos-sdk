@@ -32,7 +32,7 @@ def execCommand(args, following_args):
         project_name = project.get_project_name()
 
         if not project_name:
-            print >>sys.stderr, 'Error: No module.json file found. Run "kubos build" in the root directory of your project'
+            print >>sys.stderr, 'Error: No module.json file found. Run "kubos init" to create a new project'
             sys.exit(1)
         proj_exe_path =  os.path.join(os.getcwd(), 'build', current_target, 'source', project_name)
         kubos_dir = resource_filename(__name__, '')

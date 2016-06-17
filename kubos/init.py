@@ -21,5 +21,5 @@ def addOptions(parser):
     parser.add_argument('proj_name', nargs=1, help='specify the project name')
 
 def execCommand(args, following_args):
-    proj_name = args.proj_name[0] or os.path.dirname()
+    proj_name = args.proj_name[0]
     container.pass_through(args.subcommand_name, proj_name, *following_args)

@@ -17,7 +17,6 @@ import json
 import os
 
 yotta_meta_file = '.yotta.json'
-module_file_name = 'module.json'
 
 def get_current_target():
     meta_file_path = os.path.join(os.getcwd(), yotta_meta_file)

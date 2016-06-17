@@ -20,7 +20,5 @@ def addOptions(parser):
     pass
 
 def execCommand(args, following_args):
-    spinner = status_spinner.start_spinner()
     container.pass_through(args.subcommand_name, *following_args)
-    status_spinner.stop_spinner(spinner)
 

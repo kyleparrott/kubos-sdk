@@ -24,7 +24,7 @@ import threading
 from docker import Client
 import docker
 
-from utils import version, container
+from utils import container
 from options import parser
 
 container_repo = 'kubostech/kubos-sdk'
@@ -42,9 +42,13 @@ def splitList(l, at_value):
     return r
 
 def main():
+    if os.name == 'nt':
+        import logging
+        logging.warning('Windows is not currently supported. Many of the features in the Kubos-sdk will most likely not work correctly or at all on computers running Windows')
+    
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawTextHelpFormatter,
-        description='Build software using re-usable components.\n'+
+        description='kubos - the SDK for working with the KubOS RTOS\n'+
         'For more detailed help on each subcommand, run: kubos <subcommand> --help'
     )
     subparser = parser.add_subparsers(dest='subcommand_name', metavar='<subcommand>')
@@ -79,6 +83,18 @@ def main():
     add_parser('test', 'test', 'Run the tests for the current module on the current target. Requires target support for cross-compiling targets', help='Run the tests for the current module or target')
     add_parser('update', 'update', 'Pull the latest kubos-sdk container', help='Pull latest kubos-sdk docker container')
     add_parser('version', 'version', 'Show the current kubos-sdk version', help='Display version information')
+
+    short_commands = {
+                'up':subparser.choices['update'],
+                'ln':subparser.choices['link'],
+                 'v':subparser.choices['version'],
+                'ls':subparser.choices['list'],
+                'rm':subparser.choices['remove'],
+            'unlink':subparser.choices['remove'],
+     'unlink-target':subparser.choices['remove'],
+              'lics':subparser.choices['licenses'],
+    }
+    subparser.choices.update(short_commands)
 
     split_args = splitList(sys.argv, '--')
     following_args = reduce(lambda x,y: x + ['--'] + y, split_args[1:], [])[1:]
