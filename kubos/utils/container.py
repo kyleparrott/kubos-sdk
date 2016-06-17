@@ -13,13 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import json
 import os
 import sys
 import docker
 
 from docker import Client
 from . import status_spinner
+from project import get_local_link_file
+
 container_repo = 'kubostech/kubos-sdk'
 container_tag = '0.0.2'
 
@@ -73,12 +75,20 @@ def run_container(arg_list):
         print "Warnings: ", container_data['Warnings']
     spinner = status_spinner.start_spinner()
 
-    cli.start(container_id, binds={
-        cwd : {
-            'bind': cwd,
-            'ro': False
-        }
-    })
+    #mount configuration for linked modules
+    bind_dirs = []
+    local_link_file = get_local_link_file()
+    if os.path.isfile(local_link_file):
+        with open(local_link_file, 'r') as link_file:
+            link_data = json.load(link_file)
+        for key in link_data:
+            #in the container modules are mounted at their absolute path on the host
+            path_spec = '%s:%s' % (link_data[key], link_data[key])
+            bind_dirs.append(path_spec)
+    cwd_bind = '%s:%s' % (cwd, cwd)
+    bind_dirs.append(cwd_bind)
+
+    cli.start(container_id, binds=bind_dirs)
     container_output = cli.logs(container=container_id, stream=True)
     for entry in container_output:
         sys.stdout.write(entry)

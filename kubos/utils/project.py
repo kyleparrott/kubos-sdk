@@ -28,3 +28,15 @@ def get_project_name():
     else:
         return None
 
+
+def get_global_link_file():
+    home_dir = os.path.expanduser('~')
+    kubos_file_path = os.path.join(home_dir, '.kubos-link-global.json')
+    return kubos_file_path
+
+
+def get_local_link_file():
+    this_dir = os.getcwd()
+    path = os.path.join(this_dir, '.kubos-link.json')
+    return path
+
