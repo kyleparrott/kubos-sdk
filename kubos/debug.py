@@ -14,14 +14,76 @@
 # limitations under the License.
 
 import logging
+import os
+import subprocess
+import sys
+import thread
 
+from . import server
 from options import parser
-from utils import container
+from pkg_resources import resource_filename
+from utils import container, target, project
+
+gdb_command_file = '.gdb_commands'
+
+gdb_commands = '''\
+target remote %s:3333
+file %s
+load
+'''
 
 def addOptions(parser):
     pass
 
+
 def execCommand(args, following_args):
-    logging.warning('This command is not yet fully implemented by the kubos-sdk. It might not work correctly yet.\n')
-    container.pass_through(args.subcommand_name, *following_args)
+    current_target = target.get_current_target()
+    if not current_target:
+        print >>sys.stderr, 'Set a target and build your project before debugging'
+        sys.exit(1)
+    generate_gdb_commands(current_target)
+    if server.get_server_status() == 'stopped':
+        print 'Kubos GDB server not running...\nStarting GDB Server...'
+        server.start_server()
+    gdb_file_path = os.path.join(os.getcwd(), gdb_command_file)
+    if current_target.startswith('stm32'):
+        command = ['arm-none-eabi-gdb', '-x', gdb_file_path]
+    elif current_target.startswith('msp430'):
+        command = ['msp430-gdb', '-x', gdb_file_path]
+    container.debug(command)
+
+
+def generate_gdb_commands(current_target):
+    proj_name = project.get_project_name()
+    exe_path  = os.path.join(os.getcwd(), 'build', current_target, 'source', proj_name)
+    commands  = gdb_commands % (get_host_ip(), exe_path)
+    if not os.path.isfile(exe_path):
+        print >>sys.stderr, 'Error, the binary %s does not exist. Run `kubos build` to build your project before debugging'
+        sys.exit(1)
+    with open(gdb_command_file, 'w') as gdb_file:
+        gdb_file.write(commands)
+
+
+def get_host_ip():
+    if sys.platform.startswith('linux'):
+        return 'localhost'
+    if sys.platform.startswith('darwin'):
+        kubos_dir = get_kubos_dir()
+        machine_name = os.getenv('DOCKER_MACHINE_NAME')
+        script_path = os.path.join(kubos_dir, 'utils', 'getip.sh')
+        try:
+            ip = subprocess.check_output(['/bin/bash', script_path])
+            return ip.strip()
+        except subprocess.CalledProcessError as e:
+            print >>sys.stderr, 'There was an error getting your docker-machine configuration. You might need to re-run the `docker-machine env` command'
+            sys.exit(1)
+
+
+def get_kubos_dir():
+    kubos_dir = resource_filename(__name__, '')
+    return kubos_dir
+
+
+if __name__ == '__main__':
+    execCommand(None,None)
 

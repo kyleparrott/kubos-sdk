@@ -40,3 +40,12 @@ def get_local_link_file():
     path = os.path.join(this_dir, '.kubos-link.json')
     return path
 
+
+def check_env_var(path):
+    ld_lib_path = 'LD_LIBRARY_PATH'
+    if not hasattr(os.environ, ld_lib_path):
+        os.environ[ld_lib_path] = path
+    else:
+        os.environ[ld_lib_path] += ':%s' % path
+
+

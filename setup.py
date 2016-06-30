@@ -11,7 +11,13 @@ for ascii_key in ("name", "version"):
 
 setup_data["packages"] = find_packages()
 
-setup(data_files=[
+setup(classifiers=[
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7'
+        ],
+        data_files=[
+        ('/kubos/utils',                ['kubos/utils/getip.sh']),
         ('/kubos/flash/mspdebug', ['flash/mspdebug/flash.sh']),
         ('/kubos/flash/dfu_util', ['flash/dfu_util/flash.sh']),
         ('/kubos/flash/openocd',  ['flash/openocd/flash.sh',
