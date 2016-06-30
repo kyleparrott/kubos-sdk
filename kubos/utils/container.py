@@ -13,13 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import docker
+import dockerpty
 import json
 import os
+import subprocess
 import sys
-import docker
 
-from docker import Client
 from . import status_spinner
+from docker import Client
 from project import get_local_link_file
 
 container_repo = 'kubostech/kubos-sdk'
@@ -74,8 +76,49 @@ def run_container(arg_list):
     if container_data['Warnings']:
         print "Warnings: ", container_data['Warnings']
     spinner = status_spinner.start_spinner()
+    bind_dirs = mount_volumes()
+    cli.start(container_id, binds=bind_dirs)
 
+    container_output = cli.attach(container=container_id, stream=True)
+    for entry in container_output:
+        sys.stdout.write(entry)
+    cli.stop(container_id)
+    cli.remove_container(container_id)
+    status_spinner.stop_spinner(spinner)
+
+
+def debug(arg_list):
+    cwd = os.getcwd()
+    cli = get_cli()
+    image_name = "%s:%s" % (container_repo, container_tag)
+    bind_dirs = mount_volumes()
+
+    container_data = cli.create_container(image=image_name,
+                                          command=arg_list,
+                                          host_config=cli.create_host_config(
+                                              port_bindings={3333:3333},
+                                              network_mode='host',
+                                              binds=bind_dirs
+                                          ),
+                                          working_dir=cwd,
+                                          tty=True,
+                                          stdin_open=True,
+                                          ports=[3333])
+
+    container_id = container_data['Id'].encode('utf8')
+
+    if container_data['Warnings']:
+        print "Warnings: ", container_data['Warnings']
+    if sys.platform.startswith('darwin'):
+        darwin_debug(arg_list, bind_dirs)
+    else:
+        dockerpty.start(cli, container_id)
+        cli.stop(container_id)
+        cli.remove_container(container_id)
+
+def mount_volumes():
     #mount configuration for linked modules
+    cwd = os.getcwd()
     bind_dirs = []
     local_link_file = get_local_link_file()
     if os.path.isfile(local_link_file):
@@ -87,14 +130,21 @@ def run_container(arg_list):
             bind_dirs.append(path_spec)
     cwd_bind = '%s:%s' % (cwd, cwd)
     bind_dirs.append(cwd_bind)
+    return bind_dirs
 
-    cli.start(container_id, binds=bind_dirs)
-    container_output = cli.logs(container=container_id, stream=True)
-    for entry in container_output:
-        sys.stdout.write(entry)
-
-    cli.stop(container_id)
-    cli.remove_container(container_id)
-
-    status_spinner.stop_spinner(spinner)
+def darwin_debug(command, bind_dirs):
+    '''
+    Currently docker-py does not correctly support running pseudo terminals into docker containers on mac or linux.
+    Dockerpty correctly implements this functionality but only on Linux. For now this builds the full docker CLI 
+    command for all mounted volumes and runs the command directly. This is not a long term solution.
+    '''
+    args = ['docker', 'run', '--rm', '-it']
+    volume_fmt = '-v'
+    for directory in bind_dirs:
+        args.append(volume_fmt)
+        args.append(directory)
+    image_name = "%s:%s" % (container_repo, container_tag)
+    args.append(image_name)
+    args = args + command
+    subprocess.call(args)
 

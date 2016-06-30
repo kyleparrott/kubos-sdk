@@ -74,6 +74,7 @@ def main():
     add_parser('list', 'list', 'List module dependencies', help='List the dependencies of the current module, or the inherited targets of the current target')
     add_parser('remove', 'remove', 'remove a symlinked module', help='Remove a symlinked module')
     add_parser('search', 'search', 'Search for modules and targets', help='Search for published modules and targets')
+    add_parser('server', 'server', 'Kubos debug GDB server', help='Interact with the Kubos GDB server')
     add_parser('shrinkwrap', 'shrinkwrap', 'Create a yotta-shrinkwrap.json file to freeze dependency versions', help='free dependency versions')
     add_parser('target', 'target', 'Set the target device', help='Set or display the current target device')
     add_parser('test', 'test', 'Run the tests for the current module on the current target. Requires target support for cross-compiling targets', help='Run the tests for the current module or target')
