@@ -9,6 +9,7 @@
         "yotta",
         "docker-py",
         "dockerpty",
-        "psutil"
+        "psutil",
+        "setuptools"
     ]
 }

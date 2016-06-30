@@ -33,6 +33,9 @@ load
 '''
 
 def addOptions(parser):
+    '''
+    This is a required function that's called from main when this module is imported
+    '''
     pass
 
 
@@ -42,11 +45,11 @@ def execCommand(args, following_args):
         print >>sys.stderr, 'Set a target and build your project before debugging'
         sys.exit(1)
     generate_gdb_commands(current_target)
-    if server.get_server_status() == 'stopped':
+    if server.get_server_status() == server.server_stopped:
         print 'Kubos GDB server not running...\nStarting GDB Server...'
         server.start_server()
     gdb_file_path = os.path.join(os.getcwd(), gdb_command_file)
-    if current_target.startswith('stm32'):
+    if current_target.startswith('stm32') or current_target.startswith('na'):
         command = ['arm-none-eabi-gdb', '-x', gdb_file_path]
     elif current_target.startswith('msp430'):
         command = ['msp430-gdb', '-x', gdb_file_path]
@@ -82,8 +85,4 @@ def get_host_ip():
 def get_kubos_dir():
     kubos_dir = resource_filename(__name__, '')
     return kubos_dir
-
-
-if __name__ == '__main__':
-    execCommand(None,None)
 

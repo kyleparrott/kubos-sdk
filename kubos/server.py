@@ -23,6 +23,8 @@ from options import parser
 from pkg_resources import resource_filename
 from utils import container, project, target
 
+server_running = 'Running'
+server_stopped = 'Stopped'
 
 def addOptions(parser):
     parser.add_argument('action', nargs='?', help='Interact directly with the gdb server. Options: start, stop, restart or status')
@@ -35,17 +37,17 @@ def execCommand(args, following_args):
         print_server_status()
     elif args.action == 'stop':
         stop_server()
-    elif args.action =='restart':
+    elif args.action == 'restart':
         restart_server()
 
 
 def start_server():
     current_target = target.get_current_target()
     flash_dir, lib_dir, exe_dir = get_dirs()
-    project.check_env_var(lib_dir)
+    project.add_ld_library_path(lib_dir)
     if not current_target:
         print >>sys.stderr, 'Set a target hardware device and build your project before debugging'
-
+        sys.exit(1)
     if current_target.startswith('stm32'):
         flash_script = os.path.join(flash_dir, 'openocd', 'flash.sh')
         util_exe = os.path.join(exe_dir, 'openocd')
@@ -58,10 +60,10 @@ def start_server():
     #catch failed server starts
     time.sleep(0.5)
     status = get_server_status()
-    if status == 'stopped':
+    if status == server_stopped:
         print >>sys.stderr, 'GDB server failed to start... Ensure your target device is connected'
         sys.exit(1)
-    elif status == 'running':
+    elif status == server_running:
         print 'Server successfully Started'
 
 
@@ -69,9 +71,9 @@ def get_server_status():
     flash_util = get_flash_util()
     process = get_server_process(flash_util)
     if process:
-        return 'running'
+        return server_running
     else:
-        return 'stopped'
+        return server_stopped
 
 
 def print_server_status():
