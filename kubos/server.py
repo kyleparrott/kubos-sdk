@@ -48,7 +48,7 @@ def start_server():
     if not current_target:
         print >>sys.stderr, 'Set a target hardware device and build your project before debugging'
         sys.exit(1)
-    if current_target.startswith('stm32'):
+    if current_target.startswith('stm32') or current_target.startswith('na'):
         flash_script = os.path.join(flash_dir, 'openocd', 'flash.sh')
         util_exe = os.path.join(exe_dir, 'openocd')
         proc = subprocess.Popen(['/bin/bash', flash_script, util_exe, '', lib_dir], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -111,7 +111,7 @@ def get_flash_util():
     if not current_target:
         print >>sys.stderr, 'No Target is currently set. Cannot start the gdb server'
         sys.exit(1)
-    if current_target.startswith('stm32'):
+    if current_target.startswith('stm32') or current_target.startswith('na'):
         flash_util = 'openocd'
     elif current_target.startswith('msp430'):
         flash_util = 'mspdebug'
