@@ -13,12 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+
 from options import parser
-from utils import container
+from utils import container, target
 
 def addOptions(parser):
     pass
 
 def execCommand(args, following_args):
+    # Running this command without a target set will prompt the user for their mbed login
+    if not target.get_current_target(): 
+        print >>sys.stderr, 'Please set a target device before running this command'
+        sys.exit(1)
     container.pass_through(args.subcommand_name, *following_args)
 
