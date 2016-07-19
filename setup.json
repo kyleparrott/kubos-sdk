@@ -5,6 +5,7 @@
         "dockerpty",
         "psutil",
         "setuptools",
+        "appdirs",
         "requests==2.10.0"
     ],
     "classifiers": [
