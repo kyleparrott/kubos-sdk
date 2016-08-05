@@ -48,4 +48,5 @@ setup(classifiers=[
                 'kubos=kubos:main'
             ]
         },
+        test_suite='kubos.test',
         **setup_data)
