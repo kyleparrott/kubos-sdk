@@ -25,7 +25,7 @@ from docker import Client
 from project import get_local_link_file
 
 container_repo = 'kubostech/kubos-sdk'
-container_tag = '0.0.4'
+container_tag = '0.0.5'
 
 def get_cli():
     if sys.platform.startswith('linux'):
