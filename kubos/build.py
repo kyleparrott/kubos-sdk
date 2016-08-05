@@ -13,12 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 from options import parser
-from utils import container
+from utils import container, target
 
 def addOptions(parser):
     pass
 
 def execCommand(args, following_args):
+    if not target.get_current_target():
+        print >>sys.stderr, 'Error: No target currently selected. Select a target before building your project'
+        sys.exit(1)
     container.pass_through(args.subcommand_name, *following_args)
 
