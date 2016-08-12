@@ -41,7 +41,7 @@ def main():
     if os.name == 'nt':
         import logging
         logging.warning('Windows is not currently supported. Many of the features in the Kubos-sdk will most likely not work correctly or at all on computers running Windows')
-    
+
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawTextHelpFormatter,
         description='kubos - the SDK for working with the KubOS RTOS\n'+
@@ -70,7 +70,8 @@ def main():
     add_parser('flash', 'flash', 'Flash the target device', help='Flash and start the built executable on the current target')
     add_parser('init', 'init', 'Initialize a new KubOS project', help='Create a new module')
     add_parser('licenses', 'licenses', 'Print licenses for dependencies', help='List the licenses of the current module and its dependencies')
-    add_parser('link', 'link', 'Symlink a module', help='Flash and start the built executable on the current target')
+    add_parser('link', 'link', 'Symlink a module', help='Symlink a module to be used in the build of another module')
+    add_parser('link-target', 'link_target', 'Symlink a target', help='Symlink a target into a kubos project')
     add_parser('list', 'list', 'List module dependencies', help='List the dependencies of the current module, or the inherited targets of the current target')
     add_parser('remove', 'remove', 'remove a symlinked module', help='Remove a symlinked module')
     add_parser('search', 'search', 'Search for modules and targets', help='Search for published modules and targets')

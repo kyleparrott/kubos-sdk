@@ -18,6 +18,11 @@ import os
 
 module_file_name = 'module.json'
 
+#keys for link json data
+module_key = 'modules'
+target_key = 'targets'
+target_mount_dir = os.path.join('/', 'usr', 'lib', 'yotta_targets')
+
 def get_project_name():
     module_file_path = os.path.join(os.getcwd(), module_file_name)
     if os.path.isfile(module_file_path):

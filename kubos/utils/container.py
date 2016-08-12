@@ -22,7 +22,7 @@ import sys
 
 from . import status_spinner
 from docker import Client
-from project import get_local_link_file
+from project import get_local_link_file, module_key, target_key, target_mount_dir
 
 container_repo = 'kubostech/kubos-sdk'
 container_tag = '0.0.5'
@@ -116,6 +116,7 @@ def debug(arg_list):
         cli.stop(container_id)
         cli.remove_container(container_id)
 
+
 def mount_volumes():
     #mount configuration for linked modules
     cwd = os.getcwd()
@@ -124,13 +125,21 @@ def mount_volumes():
     if os.path.isfile(local_link_file):
         with open(local_link_file, 'r') as link_file:
             link_data = json.load(link_file)
-        for key in link_data:
-            #in the container modules are mounted at their absolute path on the host
-            path_spec = '%s:%s' % (link_data[key], link_data[key])
+            module_links = link_data[module_key]
+            target_links = link_data[target_key]
+        for key in module_links:
+            # in the container modules are mounted at their absolute path on the host
+            path_spec = '%s:%s' % (module_links[key], module_links[key])
+            bind_dirs.append(path_spec)
+        for key in target_links:
+            target_dir_name = os.path.basename(target_links[key])
+            target_path = os.path.join(target_mount_dir, target_dir_name)
+            path_spec = '%s:%s' % (target_links[key], target_links[key])
             bind_dirs.append(path_spec)
     cwd_bind = '%s:%s' % (cwd, cwd)
     bind_dirs.append(cwd_bind)
     return bind_dirs
+
 
 def darwin_debug(command, bind_dirs):
     '''
