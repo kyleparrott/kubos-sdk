@@ -13,35 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import kubos
 import mock
-import os
 import unittest
 import sys
 
-from kubos import target, utils, main
-from kubos.test.utils import get_arg_list
+from kubos.utils import target, container
+from kubos.test.utils import get_arg_list, KubosTestCase
 
 
-class TestList(unittest.TestCase):
-    def setUp(self):
-        arg1 = sys.argv[0]
-        sys.argv = list()
-        sys.argv.append(arg1)
-        self.base_dir = os.getcwd()
-        sys.argv.append('list')
-        target.get_current_target = mock.MagicMock(return_value='stm32f407-disco-gcc')
-        utils.container.pass_through = mock.MagicMock()
+class TestList(KubosTestCase):
+    def _setUp(self):
+        self.test_command = 'list'
+        sys.argv.append(self.test_command)
+
+    def test_list_without_target(self):
+        target.get_current_target = mock.MagicMock(return_value=None)
+        with self.assertRaises(SystemExit):
+            kubos.main()
 
 
     def test_list_with_target(self):
-        main()
-        arg_list = get_arg_list(utils.container.pass_through.call_args_list)
-        self.assertTrue('list' in arg_list)
-
-
-    def tearDown(self):
-        sys.argv.remove('list')
+        target.get_current_target = mock.MagicMock(return_value='stm32f407-disco-gcc')
+        kubos.main()
+        arg_list = get_arg_list(kubos.utils.container.pass_through.call_args_list)
+        self.assertTrue(self.test_command in arg_list)
 
 
 if __name__ == '__main__':
     unittest.main()
+

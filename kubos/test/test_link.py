@@ -19,30 +19,23 @@ import os
 import unittest
 import sys
 
-from kubos.test.utils import get_arg_dict
+from kubos.test.utils import get_arg_dict, KubosTestCase
 
-class KubosLinkTest(unittest.TestCase):
+class KubosLinkTest(KubosTestCase):
     def setUp(self):
-        arg1 = sys.argv[0]
-        sys.argv = list()
-        sys.argv.append(arg1)
-        sys.argv.append('link')
-        kubos.utils.container.pass_through = mock.MagicMock()
+        self.test_command = 'link'
+        sys.argv.append(self.test_command)
         #These test intentionally cause warnings output to stderr
         #These warnings aren't relevant to the test so this hides the warnings
         sys.stderr = open(os.devnull, 'wb')
 
 
     def test_link(self):
-        search_dict = {'subcommand_name' : 'link'}
+        search_dict = {'subcommand_name' : self.test_command}
         with self.assertRaises(SystemExit):
             kubos.main()
-            arg_list  = get_arg_dict(kubos.utils.link.execCommand.call_args_list)
+            arg_list = get_arg_dict(kubos.utils.link.execCommand.call_args_list)
             self.assertTrue(search_dict.viewitems() <= arg_list.viewitems())
-
-
-    def tearDown(self):
-        sys.argv.remove('link')
 
 
 if __name__ == '__main__':

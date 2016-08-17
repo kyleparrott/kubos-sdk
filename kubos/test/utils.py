@@ -13,6 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import kubos
+import mock
+import unittest
+import sys
+
 #Call_list is a tuple of _Call_List instances which holds an argparse.Namespace object
 #call_list[0][0] returns the argument list that the function was called with the first time
 
@@ -25,4 +30,32 @@ def get_arg_list(call_list):
 
 def get_arg_dict(call_list):
     return vars(call_list[0][0][0])
+
+
+class KubosTestCase(unittest.TestCase):
+    test_command = None
+    test_arg = None
+
+    # More generic setUp and tearDown for all tests
+    def setUp(self):
+        arg1 = sys.argv[0]
+        sys.argv = list()
+        sys.argv.append(arg1)
+        kubos.utils.container.pass_through = mock.MagicMock()
+        self._setUp()
+
+
+    def tearDown(self):
+        sys.argv.remove(self.test_command)
+        if self.test_arg in sys.argv: # Not all tests requrire an additional argument
+            sys.argv.remove(self.test_arg)
+        self._tearDown()
+
+    # These are defined in child classes to implement the spefic setUp and tearDown
+    # functions for the specific tests
+    def _setUp(self):
+        pass
+
+    def _tearDown(self):
+        pass
 

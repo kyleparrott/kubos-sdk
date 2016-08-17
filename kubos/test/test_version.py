@@ -14,52 +14,38 @@
 # limitations under the License.
 
 import mock
-import unittest
 import sys
+import unittest
 
 from kubos import main, version, utils
-from kubos.test.utils import get_arg_dict
+from kubos.test.utils import get_arg_dict, KubosTestCase
 
-class KubosVersionTest(unittest.TestCase):
-    def setUp(self):
+class KubosVersionTest(KubosTestCase):
+    def _setUp(self):
         self.test_command = 'version'
-        arg1 = sys.argv[0]
-        sys.argv = list()
-        sys.argv.append(arg1)
         sys.argv.append(self.test_command)
+        version.execCommand = mock.MagicMock()
 
 
     def test_version(self):
         search_dict = {'subcommand_name' : self.test_command}
-        version.execCommand = mock.MagicMock()
         main()
         arg_list  = get_arg_dict(version.execCommand.call_args_list)
         self.assertTrue(search_dict.viewitems() <= arg_list.viewitems())
 
 
-    def tearDown(self):
-        sys.argv.remove(self.test_command)
-
-
-class KubosVTest(unittest.TestCase):
-    def setUp(self):
+class KubosVTest(KubosTestCase):
+    def _setUp(self):
         self.test_command = 'v'
-        arg1 = sys.argv[0]
-        sys.argv = list()
-        sys.argv.append(arg1)
         sys.argv.append(self.test_command)
-
-
-    def test_version(self):
-        search_dict = {'subcommand_name' : self.test_command}
         version.execCommand = mock.MagicMock()
+
+
+    def test_v(self):
+        search_dict = {'subcommand_name' : self.test_command}
         main()
         arg_list  = get_arg_dict(version.execCommand.call_args_list)
         self.assertTrue(search_dict.viewitems() <= arg_list.viewitems())
-
-
-    def tearDown(self):
-        sys.argv.remove(self.test_command)
 
 
 if __name__ == '__main__':

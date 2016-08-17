@@ -15,31 +15,22 @@
 
 import mock
 import os
-import unittest
-import shutil
-import tempfile
 import sys
+import unittest
+
 from kubos import main, utils
-from kubos.test.utils import get_arg_list
+from kubos.test.utils import get_arg_list, KubosTestCase
 
-
-class TestSetTargetsCLI(unittest.TestCase):
-    def setUp(self):
-        arg1 = sys.argv[0]
-        sys.argv = list()
-        sys.argv.append(arg1)
-        sys.argv.append('target')
-        utils.container.pass_through = mock.MagicMock()
+class TestSetTargetsCLI(KubosTestCase):
+    def _setUp(self):
+        self.test_command = 'target'
+        sys.argv.append(self.test_command)
 
 
     def test_target(self):
         main()
-        arg_list  = get_arg_list(utils.container.pass_through.call_args_list)
-        self.assertTrue('target' in arg_list)
-
-
-    def tearDown(self):
-        sys.argv.remove('target')
+        arg_list = get_arg_list(utils.container.pass_through.call_args_list)
+        self.assertTrue(self.test_command in arg_list)
 
 
 if __name__ == '__main__':

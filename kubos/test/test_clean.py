@@ -14,31 +14,21 @@
 # limitations under the License.
 
 import kubos
-import mock
-import os
 import sys
 import unittest
 
-from kubos.test.utils import get_arg_list
+from kubos.test.utils import get_arg_list, KubosTestCase
 
-class KubosInitTest(unittest.TestCase):
-    def setUp(self):
+class KubosCleanTest(KubosTestCase):
+    def _setUp(self):
         self.test_command = 'clean'
-        arg1 = sys.argv[0]
-        sys.argv = list()
-        sys.argv.append(arg1)
         sys.argv.append(self.test_command)
 
 
-    def test_init(self):
-        kubos.utils.container.pass_through = mock.MagicMock()
+    def test_clean(self):
         kubos.main()
         arg_list  = get_arg_list(kubos.utils.container.pass_through.call_args_list)
         self.assertTrue(self.test_command in arg_list)
-
-
-    def tearDown(self):
-        sys.argv.remove(self.test_command)
 
 
 if __name__ == '__main__':

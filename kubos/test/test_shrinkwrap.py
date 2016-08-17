@@ -16,30 +16,20 @@
 import mock
 import unittest
 import sys
-import os
 
 from kubos import main, utils
-from kubos.test.utils import get_arg_list
+from kubos.test.utils import get_arg_list, KubosTestCase
 
-class KubosInitTest(unittest.TestCase):
-    def setUp(self):
+class KubosInitTest(KubosTestCase):
+    def _setUp(self):
         self.test_command = 'shrinkwrap'
-        arg1 = sys.argv[0]
-        sys.argv = list()
-        sys.argv.append(arg1)
         sys.argv.append(self.test_command)
-        sys.stdout = sys.stderr = open(os.devnull, 'wb')
-        utils.container.pass_through = mock.MagicMock()
 
 
     def test_init(self):
         main()
         arg_list  = get_arg_list(utils.container.pass_through.call_args_list)
         self.assertTrue(self.test_command in arg_list)
-
-
-    def tearDown(self):
-        sys.argv.remove(self.test_command)
 
 
 if __name__ == '__main__':

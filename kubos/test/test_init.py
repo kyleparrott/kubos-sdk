@@ -18,30 +18,24 @@ import mock
 import sys
 import unittest
 
-from kubos.test.utils import get_arg_list
+from kubos.test.utils import get_arg_list, KubosTestCase
 
-class KubosInitTest(unittest.TestCase):
-    def setUp(self):
-        arg1 = sys.argv[0]
-        sys.argv = list()
-        sys.argv.append(arg1)
-        sys.argv.append('init')
-        sys.argv.append('test-project')
+class KubosInitTest(KubosTestCase):
+    def _setUp(self):
+        self.test_command = 'init'
+        self.test_arg = 'test-project'
+        sys.argv.append(self.test_command)
+        sys.argv.append(self.test_arg)
 
 
     def test_init(self):
-        search_args = {'proj_name' : ['test-project'],
-                       'subcommand_name' : 'init'}
+        search_args = {'proj_name' : [self.test_arg],
+                       'subcommand_name' : self.test_command}
         kubos.utils.container.pass_through = mock.MagicMock()
         kubos.main()
         arg_list  = get_arg_list(kubos.utils.container.pass_through.call_args_list)
-        self.assertTrue('init' in arg_list)
-        self.assertTrue('test-project' in arg_list)
-
-
-    def tearDown(self):
-        sys.argv.remove('init')
-        sys.argv.remove('test-project')
+        self.assertTrue(self.test_command in arg_list)
+        self.assertTrue(self.test_arg in arg_list)
 
 
 if __name__ == '__main__':

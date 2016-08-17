@@ -13,35 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import kubos
+import kubos.utils.target
 import mock
-import unittest
 import sys
+import unittest
 
-from kubos.test.utils import get_arg_list
+from kubos.test.utils import get_arg_list, KubosTestCase
 
-class KubosBuildFullTest(unittest.TestCase):
-    def setUp(self):
-        arg1 = sys.argv[0]
-        sys.argv = list()
-        sys.argv.append(arg1)
-        sys.argv.append('build')
-        kubos.utils.container.pass_through = mock.MagicMock()
+class KubosBuildTest(KubosTestCase):
+    def _setUp(self):
+        self.test_command = 'build'
+        sys.argv.append(self.test_command)
+
 
     def test_not_empty(self):
         kubos.utils.target.get_current_target = mock.MagicMock(return_value='target')
         kubos.main()
         arg_list  = get_arg_list(kubos.utils.container.pass_through.call_args_list)
-        self.assertTrue('build' in arg_list)
+        self.assertTrue(self.test_command in arg_list)
 
 
     def test_empty(self):
         with self.assertRaises(SystemExit): #Test should cause an error and exit
             kubos.main()
-
-
-    def tearDown(self):
-        sys.argv.remove('build')
 
 
 if __name__ == '__main__':
