@@ -22,7 +22,8 @@ import unittest
 from kubos.test.utils import get_arg_list, KubosTestCase
 
 class KubosLicenseTest(KubosTestCase):
-    def _setUp(self):
+    def setUp(self):
+        super(KubosLicenseTest, self).setUp()
         self.test_command = 'licenses'
         sys.argv.append(self.test_command)
         sys.stdout = sys.stderr = open(os.devnull, 'wb')
@@ -34,8 +35,13 @@ class KubosLicenseTest(KubosTestCase):
         self.assertTrue(self.test_command in arg_list)
 
 
+    def tearDown(self):
+        super(KubosLicenseTest, self).tearDown()
+
+
 class KubosLicsTest(KubosTestCase):
-    def _setUp(self):
+    def setUp(self):
+        super(KubosLicsTest, self).setUp()
         self.test_command = 'lics'
         sys.argv.append(self.test_command)
         sys.stdout = sys.stderr = open(os.devnull, 'wb')
@@ -45,6 +51,10 @@ class KubosLicsTest(KubosTestCase):
         kubos.main()
         arg_list  = get_arg_list(kubos.utils.container.pass_through.call_args_list)
         self.assertTrue(self.test_command in arg_list)
+
+
+    def tearDown(self):
+        super(KubosLicsTest, self).tearDown()
 
 
 if __name__ == '__main__':

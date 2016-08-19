@@ -23,6 +23,7 @@ from kubos.test.utils import get_arg_dict, KubosTestCase
 
 class KubosLinkTest(KubosTestCase):
     def setUp(self):
+        super(KubosLinkTest, self).setUp()
         self.test_command = 'link'
         sys.argv.append(self.test_command)
         #These test intentionally cause warnings output to stderr
@@ -36,6 +37,10 @@ class KubosLinkTest(KubosTestCase):
             kubos.main()
             arg_list = get_arg_dict(kubos.utils.link.execCommand.call_args_list)
             self.assertTrue(search_dict.viewitems() <= arg_list.viewitems())
+
+
+    def tearDown(self):
+        super(KubosLinkTest, self).tearDown()
 
 
 if __name__ == '__main__':

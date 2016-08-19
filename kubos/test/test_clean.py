@@ -20,7 +20,8 @@ import unittest
 from kubos.test.utils import get_arg_list, KubosTestCase
 
 class KubosCleanTest(KubosTestCase):
-    def _setUp(self):
+    def setUp(self):
+        super(KubosCleanTest, self).setUp()
         self.test_command = 'clean'
         sys.argv.append(self.test_command)
 
@@ -29,6 +30,10 @@ class KubosCleanTest(KubosTestCase):
         kubos.main()
         arg_list  = get_arg_list(kubos.utils.container.pass_through.call_args_list)
         self.assertTrue(self.test_command in arg_list)
+
+
+    def tearDown(self):
+        super(KubosCleanTest, self).tearDown()
 
 
 if __name__ == '__main__':

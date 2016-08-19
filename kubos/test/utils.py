@@ -42,20 +42,9 @@ class KubosTestCase(unittest.TestCase):
         sys.argv = list()
         sys.argv.append(arg1)
         kubos.utils.container.pass_through = mock.MagicMock()
-        self._setUp()
 
 
     def tearDown(self):
         sys.argv.remove(self.test_command)
         if self.test_arg in sys.argv: # Not all tests requrire an additional argument
             sys.argv.remove(self.test_arg)
-        self._tearDown()
-
-    # These are defined in child classes to implement the spefic setUp and tearDown
-    # functions for the specific tests
-    def _setUp(self):
-        pass
-
-    def _tearDown(self):
-        pass
-

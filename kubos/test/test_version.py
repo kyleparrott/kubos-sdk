@@ -21,7 +21,8 @@ from kubos import main, version, utils
 from kubos.test.utils import get_arg_dict, KubosTestCase
 
 class KubosVersionTest(KubosTestCase):
-    def _setUp(self):
+    def setUp(self):
+        super(KubosVersionTest, self).setUp()
         self.test_command = 'version'
         sys.argv.append(self.test_command)
         version.execCommand = mock.MagicMock()
@@ -34,8 +35,13 @@ class KubosVersionTest(KubosTestCase):
         self.assertTrue(search_dict.viewitems() <= arg_list.viewitems())
 
 
+    def tearDown(self):
+        super(KubosVersionTest, self).tearDown()
+
+
 class KubosVTest(KubosTestCase):
-    def _setUp(self):
+    def setUp(self):
+        super(KubosVTest, self).setUp()
         self.test_command = 'v'
         sys.argv.append(self.test_command)
         version.execCommand = mock.MagicMock()
@@ -46,6 +52,10 @@ class KubosVTest(KubosTestCase):
         main()
         arg_list  = get_arg_dict(version.execCommand.call_args_list)
         self.assertTrue(search_dict.viewitems() <= arg_list.viewitems())
+
+
+    def tearDown(self):
+        super(KubosVTest, self).tearDown()
 
 
 if __name__ == '__main__':

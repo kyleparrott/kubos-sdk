@@ -21,7 +21,8 @@ import unittest
 from kubos.test.utils import get_arg_list, KubosTestCase
 
 class KubosBuildTest(KubosTestCase):
-    def _setUp(self):
+    def setUp(self):
+        super(KubosBuildTest, self).setUp()
         self.test_command = 'build'
         sys.argv.append(self.test_command)
 
@@ -36,6 +37,10 @@ class KubosBuildTest(KubosTestCase):
     def test_empty(self):
         with self.assertRaises(SystemExit): #Test should cause an error and exit
             kubos.main()
+
+
+    def tearDown(self):
+        super(KubosBuildTest, self).tearDown()
 
 
 if __name__ == '__main__':

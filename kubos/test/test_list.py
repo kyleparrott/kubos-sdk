@@ -22,8 +22,9 @@ from kubos.utils import target, container
 from kubos.test.utils import get_arg_list, KubosTestCase
 
 
-class TestList(KubosTestCase):
-    def _setUp(self):
+class KubosListTest(KubosTestCase):
+    def setUp(self):
+        super(KubosListTest, self).setUp()
         self.test_command = 'list'
         sys.argv.append(self.test_command)
 
@@ -38,6 +39,10 @@ class TestList(KubosTestCase):
         kubos.main()
         arg_list = get_arg_list(kubos.utils.container.pass_through.call_args_list)
         self.assertTrue(self.test_command in arg_list)
+
+
+    def tearDown(self):
+        super(KubosListTest, self).tearDown()
 
 
 if __name__ == '__main__':

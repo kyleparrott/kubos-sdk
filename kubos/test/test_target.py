@@ -21,8 +21,9 @@ import unittest
 from kubos import main, utils
 from kubos.test.utils import get_arg_list, KubosTestCase
 
-class TestSetTargetsCLI(KubosTestCase):
-    def _setUp(self):
+class KubosTargetTest(KubosTestCase):
+    def setUp(self):
+        super(KubosTargetTest, self).setUp()
         self.test_command = 'target'
         sys.argv.append(self.test_command)
 
@@ -31,6 +32,10 @@ class TestSetTargetsCLI(KubosTestCase):
         main()
         arg_list = get_arg_list(utils.container.pass_through.call_args_list)
         self.assertTrue(self.test_command in arg_list)
+
+
+    def tearDown(self):
+        super(KubosTargetTest, self).tearDown()
 
 
 if __name__ == '__main__':
