@@ -1,5 +1,5 @@
 # Kubos SDK
-
+[![Build Status](https://travis-ci.org/kubostech/kubos-sdk.svg?branch=master)](https://travis-ci.org/kubostech/kubos-sdk)
 ### Installation:
 
 Install the kubos sdk
