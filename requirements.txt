@@ -1,0 +1,3 @@
+docker-py==1.8.1
+discover
+setuptools==23.0.0

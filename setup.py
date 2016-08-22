@@ -12,8 +12,6 @@ for ascii_key in ("name", "version"):
 setup_data["packages"] = find_packages()
 
 setup(classifiers=[
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7'
         ],
         data_files=[
@@ -48,4 +46,5 @@ setup(classifiers=[
                 'kubos=kubos:main'
             ]
         },
+        test_suite='kubos.test',
         **setup_data)
