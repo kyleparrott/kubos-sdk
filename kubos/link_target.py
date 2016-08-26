@@ -35,10 +35,10 @@ def execCommand(args, following_args):
             module_name = link_global(module_or_path)
             link_global_to_local(module_name)
         else:
-            #since the argument is a module name, link it from the global file to the local project
+            #since the argument is a target name, link it from the global file to the local project
             link_global_to_local(module_or_path)
     else:
-        #no argument was given, so link the module in the current directory to the global file
+        #no argument was given, so link the target in the current directory to the global file
         link_global(os.getcwd())
 
 
@@ -54,7 +54,7 @@ def link_global(target_path):
                 print >>sys.stderr, 'Error parsing data from: %s \nAre you sure it contains Vailid JSON data?' % target_json
                 sys.exit(1)
     else:
-        print >>sys.stderr, 'Error, unable to link %s does not contain a target.json' % module_path
+        print >>sys.stderr, 'Error, unable to link %s does not contain a target.json' % target_path
         sys.exit(1)
 
     global_link_file = get_global_link_file()
