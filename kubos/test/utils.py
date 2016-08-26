@@ -57,6 +57,7 @@ class KubosTestCase(unittest.TestCase):
         if self.test_arg in sys.argv: # Not all tests requrire an additional argument
             sys.argv.remove(self.test_arg)
 
+
 # These are helper functions for unit testing the link and link-target commands
 # They have their own tests in test_utils.py
 
@@ -80,10 +81,10 @@ def set_link(file_path, link_type_key, link_name):
         with open(file_path, 'r') as json_file:
             link_data = json.load(json_file)
         link_data[link_type_key][link_name] = 'test_value'
-        with open(file_path, 'w') as json_file:
-            json_file.write(json.dumps(link_data))
     else:
-        print '%s is not a valid file' % file_path
+        link_data = {link_type_key: {link_name : 'test_value'}}
+    with open(file_path, 'w') as json_file:
+        json_file.write(json.dumps(link_data))
 
 
 def check_link(file_path, link_type_key, link_name):
