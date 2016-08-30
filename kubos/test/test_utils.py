@@ -13,7 +13,7 @@ class KubosUtilsTest(KubosTestCase):
 
     def setUp(self):
         super(KubosUtilsTest, self).setUp()
-        self.json_file = os.path.join(os.getcwd(), 'test.json')
+        self.json_file = os.path.join(self.base_dir, 'test.json')
         self.test_data = { module_key : { self.test_key : self.test_value} }
 
 
@@ -52,7 +52,6 @@ class KubosUtilsTest(KubosTestCase):
 
     def tearDown(self):
         super(KubosUtilsTest, self).tearDown()
-        os.remove(self.json_file)
 
 
 if __name__ == '__main__':

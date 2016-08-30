@@ -17,8 +17,12 @@ import json
 import kubos
 import mock
 import os
-import unittest
+import shutil
 import sys
+import tempfile
+import unittest
+
+from kubos.utils.project import module_key, target_key
 
 #Call_list is a tuple of _Call_List instances which holds an argparse.Namespace object
 #call_list[0][0] returns the argument list that the function was called with the first time
@@ -46,10 +50,14 @@ class KubosTestCase(unittest.TestCase):
         sys.argv = list()
         sys.argv.append(arg1)
         kubos.utils.container.pass_through = mock.MagicMock()
-        self.base_dir = os.getcwd()
+        self.start_dir = os.getcwd()
+        self.base_dir = tempfile.mkdtemp()
+        os.chdir(self.base_dir)
 
 
     def tearDown(self):
+        os.chdir(self.start_dir)
+        shutil.rmtree(self.base_dir)
         try:
             sys.argv.remove(self.test_command)
         except ValueError:
@@ -82,7 +90,9 @@ def set_link(file_path, link_type_key, link_name):
             link_data = json.load(json_file)
         link_data[link_type_key][link_name] = 'test_value'
     else:
-        link_data = {link_type_key: {link_name : 'test_value'}}
+        link_data = {target_key: {},
+                     module_key: {}}
+        link_data[link_type_key][link_name] = 'test_value'
     with open(file_path, 'w') as json_file:
         json_file.write(json.dumps(link_data))
 

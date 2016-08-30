@@ -61,8 +61,8 @@ class KubosLinkTest(KubosTestCase):
             target_file.write(self.json_template)
         sys.argv.append(os.getcwd())
         kubos.main()
-        self.assertTrue(check_link(get_global_link_file(), module_key, self.test_name))
-        self.assertTrue(check_link(get_local_link_file(), module_key, self.test_name))
+        self.assertTrue(check_link(get_global_link_file(), target_key, self.test_name))
+        self.assertTrue(check_link(get_local_link_file(), target_key, self.test_name))
 
 
     def tearDown(self):
