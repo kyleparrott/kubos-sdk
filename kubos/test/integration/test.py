@@ -74,7 +74,7 @@ class SDKIntegrationTest(KubosTestCase):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', action='store_true', help='Skip checking UART ourput from the target board after flashing')
+    parser.add_argument('-i', action='store_true', help='Skip checking UART output from the target board after flashing')
     parser.add_argument('--targets', default='stm32f407-disco-gcc', nargs='*', help='enter a list of targets to run the test against')
     args = parser.parse_args()
     arg_dict = vars(args)
