@@ -23,21 +23,4 @@ def addOptions(parser):
     pass
 
 def execCommand(args, following_args):
-    print "Checking for latest KubOS-SDK.."
-    cli = container.get_cli()
-    spinner = status_spinner.start_spinner()
-    for data in cli.pull(repository=container.container_repo,
-                         tag=container.container_tag, stream=True):
-        for line in data.splitlines():
-            json_data = json.loads(line)
-            if 'error' in json_data:
-                print json_data['error'].encode('utf8')
-            elif 'progress' in json_data:
-                sys.stdout.write('\r%s' % json_data['progress'].encode('utf8'))
-                time.sleep(0.1)
-                sys.stdout.flush()
-            elif 'status' in json_data:
-                print json_data['status'].encode('utf8')
-    print "All up to date!\n"
-    status_spinner.stop_spinner(spinner)
-
+    container.update_container()
