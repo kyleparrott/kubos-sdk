@@ -8,8 +8,11 @@ python:
 install:
     - pip install --upgrade pip
     - pip install -r requirements.txt
-    - pip list
+    - pip install coveralls
     - sudo -HE pip install .
 
 script:
-    - python setup.py test
+    - coverage run --source=kubos-sdk setup.py test
+
+after_success:
+    - coveralls
