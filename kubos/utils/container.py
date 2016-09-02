@@ -19,6 +19,8 @@ import json
 import os
 import subprocess
 import sys
+import threading
+import time
 
 from . import status_spinner
 from docker import Client
@@ -110,17 +112,19 @@ def json_events(iter):
 def update_container():
     print "Checking for latest KubOS-SDK.."
     cli = get_cli()
-    spinner = status_spinner.start_spinner()
+    stdout_lock = threading.Lock()
+    spinner = status_spinner.start_spinner(stdout_lock)
     for event in json_events(cli.pull(repository=container_repo,
-                                     tag=container_tag, stream=True)):
-        if 'error' in event:
-            print event['error'].encode('utf8')
-        elif 'progress' in event:
-            sys.stdout.write('\r%s' % event['progress'].encode('utf8'))
-            time.sleep(0.1)
-            sys.stdout.flush()
-        elif 'status' in event:
-            print event['status'].encode('utf8')
+                                      tag=container_tag, stream=True)):
+        with stdout_lock:
+            if 'error' in event:
+                print event['error'].encode('utf8')
+            elif 'progress' in event:
+                sys.stdout.write('\r%s' % event['progress'].encode('utf8'))
+                sys.stdout.flush()
+                time.sleep(0.1)
+            elif 'status' in event:
+                print event['status'].encode('utf8')
 
     print "All up to date!\n"
     status_spinner.stop_spinner(spinner)
