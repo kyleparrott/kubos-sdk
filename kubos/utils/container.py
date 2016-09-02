@@ -86,6 +86,44 @@ def run_container(arg_list):
     cli.remove_container(container_id)
     status_spinner.stop_spinner(spinner)
 
+def json_events(iter):
+    # docker-py inconsistently streams json data through the iterator interface,
+    # sometimes as a single line, multiple lines, or even partial lines.
+    # this function noramlizes that behavior by keeping a running buffer when
+    # json parsing fails, and only yielding on json parse success. see KUBOS-125
+
+    lines = []
+    for data in iter:
+        new_lines = data.splitlines()
+        if len(lines) > 0:
+            lines[0] += new_lines.pop(0)
+        lines.extend(new_lines)
+
+        while len(lines) > 0:
+            line = lines.pop(0)
+            try:
+                yield json.loads(line)
+            except:
+                lines.append(line)
+                break
+
+def update_container():
+    print "Checking for latest KubOS-SDK.."
+    cli = get_cli()
+    spinner = status_spinner.start_spinner()
+    for event in json_events(cli.pull(repository=container_repo,
+                                     tag=container_tag, stream=True)):
+        if 'error' in event:
+            print event['error'].encode('utf8')
+        elif 'progress' in event:
+            sys.stdout.write('\r%s' % event['progress'].encode('utf8'))
+            time.sleep(0.1)
+            sys.stdout.flush()
+        elif 'status' in event:
+            print event['status'].encode('utf8')
+
+    print "All up to date!\n"
+    status_spinner.stop_spinner(spinner)
 
 def debug(arg_list):
     cwd = os.getcwd()
