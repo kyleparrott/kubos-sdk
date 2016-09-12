@@ -17,14 +17,31 @@ import sys
 import threading
 import time
 
-class StatusSpinner(threading._Timer):
+
+class StatusSpinner(threading.Thread):
+
+    def __init__(self, interval, stdout_lock):
+        threading.Thread.__init__(self)
+        self.interval = interval
+        self.stdout_lock = stdout_lock
+        self.stop_lock = threading.Lock()
+        self.stop_signal = False
+
+    def stop(self):
+        with self.stop_lock:
+            self.stop_signal = True
+
     def run(self):
         spinner = self.get_spinner()
         while True:
-            sys.stdout.write(spinner.next())
-            sys.stdout.flush()
-            time.sleep(0.1)
-            sys.stdout.write('\b')
+            with self.stdout_lock:
+                sys.stdout.write("%s" % spinner.next())
+                sys.stdout.flush()
+                sys.stdout.write('\b')
+            with self.stop_lock:
+                if self.stop_signal:
+                    return
+            time.sleep(self.interval)
 
     def get_spinner(self):
         while True:
@@ -32,13 +49,30 @@ class StatusSpinner(threading._Timer):
                 yield symbol
 
 
-def start_spinner():
-    spinner = StatusSpinner(0.1, None)
+def start_spinner(stdout_lock):
+    """ Start a status spinner that prints a spinning character to stdout.
+
+    This method starts a thread, and writes to stdout from that thread, so
+    using this method introduces concerns of thread safe access to stdout.
+
+    The spinner will lock stdout_lock when writing to stdout, and all
+    other writers to stdout should do the same to prevent interleaving
+    stdout output.
+
+    Returns the StatusSpinner object, to be later passed to
+    stop_spinner(spinner) when the spinner should stop.
+    """
+    spinner = StatusSpinner(0.1, stdout_lock)
     spinner.daemon = True
     spinner.start()
     return spinner
 
 
 def stop_spinner(spinner):
-    spinner.cancel()
+    """ Stops the provided StatusSpinner.
 
+    This method blocks on the status spinner thread exiting, and the caller
+    can be guaranteed that the thread is terminated once this method returns.
+    """
+    spinner.stop()
+    spinner.join()
