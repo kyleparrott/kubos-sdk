@@ -32,9 +32,16 @@ def get_kubos_sdk_version():
 
 def get_container_tag():
     cli = container.get_cli()
+    expected_ver = container.container_tag()
+    found = False
     kubos_images = cli.images(name='kubostech/kubos-sdk')
-    if len(kubos_images) > 0 and 'RepoTags' in kubos_images[0]:
-        tag_name = kubos_images[0]['RepoTags'][0]
-        return tag_name.replace("kubostech/kubos-sdk:", "")
-    return "None Found"
+    for image in kubos_images:
+        if image['RepoTags'] is not None:
+            found_ver = image['RepoTags'][0][-5:]
+            if expected_ver == found_ver:
+                found = True
+    if found:
+        return expected_ver
+    else:
+        return "Container %s Not Found - Please run `kubos update`" % expected_ver
 
