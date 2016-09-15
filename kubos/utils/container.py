@@ -19,13 +19,19 @@ import json
 import os
 import subprocess
 import sys
+import time
+from pip.utils import ensure_dir, get_installed_version
+import threading
 
 from . import status_spinner
 from docker import Client
 from project import get_local_link_file, module_key, target_key, target_mount_dir
 
 container_repo = 'kubostech/kubos-sdk'
-container_tag = '0.1.0'
+
+def container_tag():
+    # Today our container version is linked to the version of the pip module kubos-sdk.
+    return get_installed_version('kubos-sdk')
 
 def get_cli():
     if sys.platform.startswith('linux'):
@@ -51,9 +57,13 @@ def pass_through(*args):
     arg_list = list(args)
     arg_list.insert(0, python)
     arg_list.insert(1, sdk_script)
-    run_container(arg_list)
-    if sys.platform.startswith('linux'):
-        fix_permissions()
+    try:
+        run_container(arg_list)
+        if sys.platform.startswith('linux'):
+            fix_permissions()
+    except docker.errors.NotFound:
+        print "The correct container was not found"
+        print "Please run `kubos update` and try again"
 
 
 def fix_permissions():
@@ -70,18 +80,21 @@ def fix_permissions():
 def run_container(arg_list):
     cwd = os.getcwd()
     cli = get_cli()
-    image_name = "%s:%s" % (container_repo, container_tag)
+    
+    image_name = "%s:%s" % (container_repo, container_tag())
     container_data = cli.create_container(image=image_name, command=arg_list, working_dir=cwd, tty=True)
     container_id = container_data['Id'].encode('utf8')
     if container_data['Warnings']:
         print "Warnings: ", container_data['Warnings']
-    spinner = status_spinner.start_spinner()
+    stdout_lock = threading.Lock()
+    spinner = status_spinner.start_spinner(stdout_lock)
     bind_dirs = mount_volumes()
     cli.start(container_id, binds=bind_dirs)
 
     container_output = cli.attach(container=container_id, stream=True)
     for entry in container_output:
-        sys.stdout.write(entry)
+        with stdout_lock:
+            sys.stdout.write(entry)
     cli.stop(container_id)
     cli.remove_container(container_id)
     status_spinner.stop_spinner(spinner)
@@ -110,17 +123,19 @@ def json_events(iter):
 def update_container():
     print "Checking for latest KubOS-SDK.."
     cli = get_cli()
-    spinner = status_spinner.start_spinner()
+    stdout_lock = threading.Lock()
+    spinner = status_spinner.start_spinner(stdout_lock)
     for event in json_events(cli.pull(repository=container_repo,
-                                     tag=container_tag, stream=True)):
-        if 'error' in event:
-            print event['error'].encode('utf8')
-        elif 'progress' in event:
-            sys.stdout.write('\r%s' % event['progress'].encode('utf8'))
-            time.sleep(0.1)
-            sys.stdout.flush()
-        elif 'status' in event:
-            print event['status'].encode('utf8')
+                                      tag=container_tag(), stream=True)):
+        with stdout_lock:
+            if 'error' in event:
+                print event['error'].encode('utf8')
+            elif 'progress' in event:
+                sys.stdout.write('\r%s' % event['progress'].encode('utf8'))
+                sys.stdout.flush()
+                time.sleep(0.1)
+            elif 'status' in event:
+                print event['status'].encode('utf8')
 
     print "All up to date!\n"
     status_spinner.stop_spinner(spinner)
@@ -128,7 +143,7 @@ def update_container():
 def debug(arg_list):
     cwd = os.getcwd()
     cli = get_cli()
-    image_name = "%s:%s" % (container_repo, container_tag)
+    image_name = "%s:%s" % (container_repo, container_tag())
     bind_dirs = mount_volumes()
 
     container_data = cli.create_container(image=image_name,
@@ -190,7 +205,7 @@ def darwin_debug(command, bind_dirs):
     for directory in bind_dirs:
         args.append(volume_fmt)
         args.append(directory)
-    image_name = "%s:%s" % (container_repo, container_tag)
+    image_name = "%s:%s" % (container_repo, container_tag())
     args.append(image_name)
     args = args + command
     subprocess.call(args)

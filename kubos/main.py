@@ -16,6 +16,7 @@
 import argparse
 import functools
 import json
+import logging
 import os
 import sys
 import subprocess
@@ -45,7 +46,6 @@ def splitList(l, at_value):
 
 def main():
     if os.name == 'nt':
-        import logging
         logging.warning('Windows is not currently supported. Many of the features in the Kubos-sdk will most likely not work correctly or at all on computers running Windows')
 
     parser = argparse.ArgumentParser(
