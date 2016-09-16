@@ -16,4 +16,7 @@ install:
     - sudo -HE pip install dist/*
 
 script:
-    - python setup.py test
+    - coverage run --source=kubos setup.py test
+
+after_success:
+    - coveralls

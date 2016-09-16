@@ -59,8 +59,6 @@ def pass_through(*args):
     arg_list.insert(1, sdk_script)
     try:
         run_container(arg_list)
-        if sys.platform.startswith('linux'):
-            fix_permissions()
     except docker.errors.NotFound:
         print "The correct container was not found"
         print "Please run `kubos update` and try again"
@@ -82,7 +80,14 @@ def run_container(arg_list):
     cli = get_cli()
 
     image_name = "%s:%s" % (container_repo, container_tag())
-    container_data = cli.create_container(image=image_name, command=arg_list, working_dir=cwd, tty=True)
+    host_config = cli.create_host_config(binds=mount_volumes())
+    uid_var = get_uid()
+    container_data = cli.create_container(image=image_name,
+                                          command=arg_list,
+                                          environment=get_uid(),
+                                          host_config=host_config,
+                                          working_dir=cwd,
+                                          tty=True)
     container_id = container_data['Id'].encode('utf8')
     if container_data['Warnings']:
         print "Warnings: ", container_data['Warnings']
@@ -98,6 +103,14 @@ def run_container(arg_list):
     cli.stop(container_id)
     cli.remove_container(container_id)
     status_spinner.stop_spinner(spinner)
+
+
+def get_uid():
+    '''This returns an array with the current user id in a single element string array
+    This is used in the container so that the user in the container has the same uid
+    as the user on the host to avoid permission errors after container commands run'''
+    uid = os.getuid()
+    return ['LOCAL_USER_ID=%s' % uid]
 
 def json_events(iter):
     # docker-py inconsistently streams json data through the iterator interface,
