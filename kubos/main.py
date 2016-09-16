@@ -35,7 +35,7 @@ if sys.platform.startswith('darwin'):
     try:
         from kubos import analytics
     except:
-        print 'analytics not found'
+        print 'No analytics module found, disabling analytics'
         analytics = None
 
 def splitList(l, at_value):

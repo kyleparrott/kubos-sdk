@@ -1,7 +1,7 @@
 {
     "install_requires": [
         "yotta",
-        "docker-py",
+        "docker-py==1.9.0",
         "dockerpty",
         "psutil",
         "setuptools",
