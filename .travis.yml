@@ -10,7 +10,10 @@ install:
     - pip install -r requirements.txt
     - pip list
     - touch ./lib/osx/libanalytics.dylib
-    - sudo -HE pip install .
+    - cp module.json kubos/
+    - cp eula.txt kubos/
+    - python setup.py bdist_wheel --universal
+    - sudo -HE pip install dist/*
 
 script:
     - python setup.py test

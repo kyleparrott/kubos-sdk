@@ -69,6 +69,7 @@ def main():
     add_command('init', 'init', 'Initialize a new KubOS project', help='Create a new module')
     add_command('licenses', 'licenses', 'Print licenses for dependencies', help='List the licenses of the current module and its dependencies')
     add_command('link', 'link', 'Symlink a module', help='Flash and start the built executable on the current target')
+    add_command('link-target', 'link_target', 'Symlink a target', help='Symlink a target into a kubos project')
     add_command('list', 'list', 'List module dependencies', help='List the dependencies of the current module, or the inherited targets of the current target')
     add_command('remove', 'remove', 'remove a symlinked module', help='Remove a symlinked module')
     add_command('search', 'search', 'Search for modules and targets', help='Search for published modules and targets')
@@ -106,5 +107,5 @@ def main():
         logging.warning('interrupted')
         status = -1
 
-    sys.exit(status or 0)
+        sys.exit(status or 0)
 
