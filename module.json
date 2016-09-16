@@ -1,0 +1,8 @@
+{
+    "name": "kubos-sdk",
+    "version": "0.1.1",
+    "description": "Kubos SDK",
+    "author": "Kubos",
+    "author_email": "kyle@kubos.co",
+    "url": "http://github.com/kubostech/kubos-sdk"
+}
