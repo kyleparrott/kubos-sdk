@@ -31,17 +31,15 @@ def load_sdk_version():
     return get_installed_version('kubos-sdk')
 
 def load_container_info():
+    '''This can't return (None, None) because after a new computer there's no existing
+       sdk container, this is set to None and all kubos commands will fail, as a null pointer
+       is passed into the analytics library and causes a seg fault
+    '''
     cli = container.get_cli()
     kubos_images = cli.images(name='kubostech/kubos-sdk')
     if len(kubos_images) > 0 and 'RepoTags' in kubos_images[0]:
-        tag_name = kubos_images[0]['RepoTags'][0]
-        tag_name = tag_name.replace('kubostech/kubos-sdk:', '')
-        return (kubos_images[0]['Id'], tag_name)
-        '''This can't return (None, None) because after a new computer there's no existing
-           sdk container, this is set to None and all kubos commands will fail, as a null pointer
-           is passed into the analytics library and causes a seg fault
-        '''
-    return ('None', 'None')
+        return (kubos_images[0]['Id'], container.container_tag())
+    return ('None', container.container_tag()) #container_tag() returns the expected value not the existing container
 
 def load_sdk_edition():
     return get_sdk_attribute('edition')

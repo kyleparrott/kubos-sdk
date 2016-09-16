@@ -16,8 +16,8 @@
 
 '''
 This is a script to simplfiy building a wheel distribution of the kubos-sdk.
-Currently it assumes that you have already compiled the library and copies in the
-required dylib to the appropriate location in the sdk working tree. It also copies
+Currently this script assumes that you have already compiled the library. This script then copies the
+required dylib to the appropriate location in the kubos-sdk working tree. It also copies
 the analytics script into the sdk as well. It will in the future build the
 analytics libraries and copy them in as well.
 This assumes that your working tree looks like:
@@ -52,10 +52,17 @@ def check_file(_file):
         sys.exit(1)
 
 def copy(src, dst):
+    '''This function exits if there was an error copying the src file to the dest
+    if the file already exists at the dst it continues as normal. shutil.copy does not
+    have a return value
+    '''
     try:
         shutil.copyfile(src, dst)
     except shutil.Error:
         print 'The source and destination files are the same. Nothing to copy'
+    except:
+        print >>sys.stderr, 'There was an error copying %s to %s.\nAborting..' % (src, dst)
+        sys.exit(1)
 
 
 def run_build():
@@ -64,7 +71,8 @@ def run_build():
 
     print 'Copying Dylib...'
     copy(dylib, dylib_dest)
-    print 'Copyting Analytics.py...'
+
+    print 'Copying Analytics.py...'
     copy(analytics, analytics_dest)
 
     print 'Starting Wheel Build'
