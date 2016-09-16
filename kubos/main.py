@@ -30,10 +30,13 @@ from utils import container
 from options import command, parser
 import sdk_config
 
-try:
-    import analytics
-except:
-    analytics = None
+#Analytics are only supported on Mac OS right now
+if sys.platform.startswith('darwin'):
+    try:
+        from kubos import analytics
+    except:
+        print 'analytics not found'
+        analytics = None
 
 def splitList(l, at_value):
     r = [[]]
@@ -103,5 +106,5 @@ def main():
         logging.warning('interrupted')
         status = -1
 
-        sys.exit(status or 0)
+    sys.exit(status or 0)
 

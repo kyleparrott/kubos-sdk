@@ -1,6 +1,5 @@
+import argparse
 import importlib
-
-_command_class = SDKCommand
 
 class SDKCommand(object):
     def __init__(self, config, name, module_name, description, help=None):
@@ -29,4 +28,4 @@ def add_command(config, subparser, *args, **kwargs):
     m = _command_class(config, *args, **kwargs)
     m.addToSubparser(subparser)
 
-
+_command_class = SDKCommand

@@ -2,4 +2,5 @@ build/
 dist/
 .kubos-link.json
 kubos_sdk.egg-info/
+kubos/analytics.py
 *.pyc
