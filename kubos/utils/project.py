@@ -56,4 +56,3 @@ def add_env_var(var_name, value):
 def add_kubos_lib_path(value):
     add_env_var(k_lib_path, value)
 
-

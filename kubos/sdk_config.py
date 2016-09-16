@@ -19,10 +19,10 @@ import sys
 import time
 
 from appdirs import AppDirs
+from kubos.utils.sdk import get_sdk_attribute
 from pip.utils import get_installed_version
 from utils import container
 
-this_dir = os.path.dirname(os.path.abspath(__file__))
 
 def load_config():
     return _config_class()
@@ -37,14 +37,21 @@ def load_container_info():
         tag_name = kubos_images[0]['RepoTags'][0]
         tag_name = tag_name.replace('kubostech/kubos-sdk:', '')
         return (kubos_images[0]['Id'], tag_name)
-    return (None, None)
+        '''This can't return (None, None) because after a new computer there's no existing
+           sdk container, this is set to None and all kubos commands will fail, as a null pointer
+           is passed into the analytics library and causes a seg fault
+        '''
+    return ('None', 'None')
+
+def load_sdk_edition():
+    return get_sdk_attribute('edition')
 
 class KubosSDKConfig(object):
     def __init__(self):
         self.appdirs = AppDirs('kubos')
         self.config_path = os.path.join(self.appdirs.user_config_dir, 'kubos-sdk.json')
         self.sdk_version = load_sdk_version()
-        self.sdk_edition = 'preview'
+        self.sdk_edition = load_sdk_edition()
         self.container_tag, self.container_id = load_container_info()
         self.load_config()
 

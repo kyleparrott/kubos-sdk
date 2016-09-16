@@ -9,6 +9,8 @@ install:
     - pip install --upgrade pip
     - pip install -r requirements.txt
     - pip install coveralls
+    - pip list
+    - touch ./lib/osx/libanalytics.dylib
     - sudo -HE pip install .
 
 script:

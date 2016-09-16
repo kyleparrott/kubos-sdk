@@ -20,11 +20,11 @@ import os
 import subprocess
 import sys
 import time
-from pip.utils import ensure_dir, get_installed_version
 import threading
 
 from . import status_spinner
 from docker import Client
+from pip.utils import ensure_dir, get_installed_version
 from project import get_local_link_file, module_key, target_key, target_mount_dir
 
 container_repo = 'kubostech/kubos-sdk'
