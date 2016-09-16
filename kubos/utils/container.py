@@ -83,10 +83,8 @@ def run_container(arg_list):
 
     image_name = "%s:%s" % (container_repo, container_tag())
     host_config = cli.create_host_config(binds=mount_volumes())
-    uid_var = get_uid()
     container_data = cli.create_container(image=image_name,
                                           command=arg_list,
-                                          environment=get_uid(),
                                           host_config=host_config,
                                           working_dir=cwd,
                                           tty=True)
