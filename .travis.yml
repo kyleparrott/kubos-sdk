@@ -8,6 +8,7 @@ python:
 install:
     - pip install --upgrade pip
     - pip install -r requirements.txt
+    - pip install coveralls
     - pip list
     - touch ./lib/osx/libanalytics.dylib
     - cp module.json kubos/
@@ -16,4 +17,7 @@ install:
     - sudo -HE pip install dist/*
 
 script:
-    - python setup.py test
+    - coverage run --source=kubos setup.py test
+
+after_success:
+    - coveralls

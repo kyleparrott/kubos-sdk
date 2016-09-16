@@ -82,13 +82,17 @@ def run_container(arg_list):
     cli = get_cli()
 
     image_name = "%s:%s" % (container_repo, container_tag())
-    container_data = cli.create_container(image=image_name, command=arg_list, working_dir=cwd, tty=True)
+    host_config = cli.create_host_config(binds=mount_volumes())
+    container_data = cli.create_container(image=image_name,
+                                          command=arg_list,
+                                          host_config=host_config,
+                                          working_dir=cwd,
+                                          tty=True)
     container_id = container_data['Id'].encode('utf8')
     if container_data['Warnings']:
         print "Warnings: ", container_data['Warnings']
     stdout_lock = threading.Lock()
     spinner = status_spinner.start_spinner(stdout_lock)
-    bind_dirs = mount_volumes()
     cli.start(container_id)
 
     container_output = cli.attach(container=container_id, stream=True)
@@ -98,6 +102,14 @@ def run_container(arg_list):
     cli.stop(container_id)
     cli.remove_container(container_id)
     status_spinner.stop_spinner(spinner)
+
+
+def get_uid():
+    '''This returns an array with the current user id in a single element string array
+    This is used in the container so that the user in the container has the same uid
+    as the user on the host to avoid permission errors after container commands run'''
+    uid = os.getuid()
+    return ['LOCAL_USER_ID=%s' % uid]
 
 def json_events(iter):
     # docker-py inconsistently streams json data through the iterator interface,
