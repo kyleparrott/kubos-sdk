@@ -17,6 +17,7 @@ import json
 import os
 
 module_file_name = 'module.json'
+k_lib_path = 'KUBOS_LIB_PATH'
 
 #keys for link json data
 module_key = 'modules'
@@ -46,11 +47,13 @@ def get_local_link_file():
     return path
 
 
-def add_ld_library_path(path):
-    ld_lib_path = 'LD_LIBRARY_PATH'
-    if not hasattr(os.environ, ld_lib_path):
-        os.environ[ld_lib_path] = path
+def add_env_var(var_name, value):
+    if not hasattr(os.environ, var_name):
+        os.environ[var_name] = value
     else:
-        os.environ[ld_lib_path] += ':%s' % path
+        os.environ[var_name] += ':%s' % value
+
+def add_kubos_lib_path(value):
+    add_env_var(k_lib_path, value)
 
 
