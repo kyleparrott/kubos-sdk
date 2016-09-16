@@ -11,7 +11,10 @@ install:
     - pip install coveralls
     - pip list
     - touch ./lib/osx/libanalytics.dylib
-    - sudo -HE pip install .
+    - cp module.json kubos/
+    - cp eula.txt kubos/
+    - python setup.py bdist_wheel --universal
+    - sudo -HE pip install dist/*
 
 script:
     - coverage run --source=kubos setup.py test
