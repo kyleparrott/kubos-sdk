@@ -20,11 +20,11 @@ import os
 import subprocess
 import sys
 import time
-from pip.utils import ensure_dir, get_installed_version
 import threading
 
 from . import status_spinner
 from docker import Client
+from pip.utils import ensure_dir, get_installed_version
 from project import get_local_link_file, module_key, target_key, target_mount_dir
 
 container_repo = 'kubostech/kubos-sdk'
@@ -80,7 +80,7 @@ def fix_permissions():
 def run_container(arg_list):
     cwd = os.getcwd()
     cli = get_cli()
-    
+
     image_name = "%s:%s" % (container_repo, container_tag())
     container_data = cli.create_container(image=image_name, command=arg_list, working_dir=cwd, tty=True)
     container_id = container_data['Id'].encode('utf8')
