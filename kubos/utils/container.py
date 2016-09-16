@@ -94,7 +94,7 @@ def run_container(arg_list):
     stdout_lock = threading.Lock()
     spinner = status_spinner.start_spinner(stdout_lock)
     bind_dirs = mount_volumes()
-    cli.start(container_id, binds=bind_dirs)
+    cli.start(container_id)
 
     container_output = cli.attach(container=container_id, stream=True)
     for entry in container_output:
