@@ -1,5 +1,5 @@
 # Kubos SDK
-[![Build Status](https://travis-ci.org/kubostech/kubos-sdk.svg?branch=master)](https://travis-ci.org/kubostech/kubos-sdk) [![Coverage Status](https://coveralls.io/repos/github/kyleparrott/kubos-sdk/badge.svg?branch=master)](https://coveralls.io/github/kyleparrott/kubos-sdk?branch=master)
+[![Build Status](https://travis-ci.org/kubostech/kubos-sdk.svg?branch=master)](https://travis-ci.org/kubostech/kubos-sdk)
 ### Installation:
 
 Install the kubos sdk
