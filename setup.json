@@ -99,7 +99,12 @@
             "/kubos/lib/osx",
             [
                 "lib/osx/libmsp430.dylib",
-                "lib/osx/libanalytics.dylib"
+                "lib/osx/libanalytics.dylib",
+                "lib/osx/libftdi1.2.dylib",
+                "lib/osx/libobjc.A.dylib",
+                "lib/osx/libSystem.B.dylib",
+                "lib/osx/libusb-0.1.4.dylib",
+                "lib/osx/libusb-1.0.0.dylib"
             ]
         ]
     ]
