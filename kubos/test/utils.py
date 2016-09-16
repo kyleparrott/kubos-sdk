@@ -50,6 +50,7 @@ class KubosTestCase(unittest.TestCase):
         sys.argv = list()
         sys.argv.append(arg1)
         kubos.utils.container.pass_through = mock.MagicMock()
+        kubos.utils.container.get_cli = mock.MagicMock()
         self.start_dir = os.getcwd()
         self.base_dir = tempfile.mkdtemp()
         os.chdir(self.base_dir)

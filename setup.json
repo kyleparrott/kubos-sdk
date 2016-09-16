@@ -1,11 +1,13 @@
 {
     "install_requires": [
         "yotta",
-        "docker-py",
+        "docker-py==1.9.0",
         "dockerpty",
         "psutil",
         "setuptools",
-        "requests==2.10.0"
+        "requests==2.10.0",
+        "pager",
+        "appdirs"
     ],
     "classifiers": [
         "Programming Language :: Python :: 2.7"
@@ -17,6 +19,13 @@
     },
     "test_suite": "kubos.test",
     "data_files": [
+        [
+            "/kubos",
+            [
+                "eula.txt",
+                "module.json"
+            ]
+        ],
         [
             "/kubos/utils",
             [
@@ -89,7 +98,13 @@
         [
             "/kubos/lib/osx",
             [
-                "lib/osx/libmsp430.dylib"
+                "lib/osx/libmsp430.dylib",
+                "lib/osx/libanalytics.dylib",
+                "lib/osx/libftdi1.2.dylib",
+                "lib/osx/libobjc.A.dylib",
+                "lib/osx/libSystem.B.dylib",
+                "lib/osx/libusb-0.1.4.dylib",
+                "lib/osx/libusb-1.0.0.dylib"
             ]
         ]
     ]
