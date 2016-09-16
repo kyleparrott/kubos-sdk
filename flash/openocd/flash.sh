@@ -22,8 +22,9 @@ fi
 
 
 if [[ ! -z $cfg ]]; then
-	echo $openocd -f $this_dir/$cfg -s $search_path -c \"$cmd\" 
-	$openocd -f $this_dir/$cfg -s $search_path -c "$cmd" 
+    export LD_LIBRARY_PATH=$KUBOS_LIB_PATH:$LD_LIBRARY_PATH
+    echo $openocd -f $this_dir/$cfg -s $search_path -c \"$cmd\"
+    $openocd -f $this_dir/$cfg -s $search_path -c "$cmd"
 else
-	echo "No compatible ST-Link device found"
+    echo "No compatible ST-Link device found"
 fi
