@@ -56,7 +56,7 @@ def flash_openocd(proj_exe_path, kubos_dir):
         openocd_exe = os.path.join(kubos_dir, 'bin', 'osx', 'openocd')
         lib_path = os.path.join(kubos_dir, 'lib', 'osx')
 
-    project.add_ld_library_path(lib_path)
+    project.add_kubos_lib_path(lib_path)
     openocd_dir = os.path.join(kubos_dir, 'flash', 'openocd')
     flash_script_path = os.path.join(openocd_dir, 'flash.sh')
     argument = 'stm32f4_flash %s' % proj_exe_path
@@ -74,13 +74,14 @@ def flash_dfu_util(proj_exe_path, kubos_dir):
         dfu_util_exe = os.path.join(kubos_dir, 'bin', 'osx', 'dfu-util')
         lib_path = os.path.join(kubos_dir, 'lib', 'osx')
 
-    project.add_ld_library_path(lib_path)
+    project.add_kubos_lib_path(lib_path)
     dfu_util_dir = os.path.join(kubos_dir, 'flash', 'dfu_util')
     flash_script_path = os.path.join(dfu_util_dir, 'flash.sh')
     try:
         subprocess.check_call(['/bin/bash', flash_script_path, dfu_util_exe, proj_exe_path])
     except subprocess.CalledProcessError:
         pass
+
 
 def flash_mspdebug(proj_exe_path, kubos_dir):
     if sys.platform.startswith('linux'):
@@ -91,7 +92,7 @@ def flash_mspdebug(proj_exe_path, kubos_dir):
         mspdebug_exe = os.path.join(kubos_dir, 'bin', 'osx', 'mspdebug')
         lib_path = os.path.join(kubos_dir, 'lib', 'osx')
 
-    project.add_ld_library_path(lib_path)
+    project.add_kubos_lib_path(lib_path)
     flash_script_path = os.path.join(kubos_dir, 'flash', 'mspdebug', 'flash.sh')
     argument = 'prog %s' % proj_exe_path
     try:

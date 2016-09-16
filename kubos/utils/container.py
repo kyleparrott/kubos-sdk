@@ -19,15 +19,19 @@ import json
 import os
 import subprocess
 import sys
-import threading
 import time
+import threading
 
 from . import status_spinner
 from docker import Client
+from pip.utils import ensure_dir, get_installed_version
 from project import get_local_link_file, module_key, target_key, target_mount_dir
 
 container_repo = 'kubostech/kubos-sdk'
-container_tag = '0.1.1'
+
+def container_tag():
+    # Today our container version is linked to the version of the pip module kubos-sdk.
+    return get_installed_version('kubos-sdk')
 
 def get_cli():
     if sys.platform.startswith('linux'):
@@ -87,13 +91,15 @@ def run_container(arg_list):
     container_id = container_data['Id'].encode('utf8')
     if container_data['Warnings']:
         print "Warnings: ", container_data['Warnings']
-    spinner = status_spinner.start_spinner()
+    stdout_lock = threading.Lock()
+    spinner = status_spinner.start_spinner(stdout_lock)
     bind_dirs = mount_volumes()
     cli.start(container_id, binds=bind_dirs)
 
     container_output = cli.attach(container=container_id, stream=True)
     for entry in container_output:
-        sys.stdout.write(entry)
+        with stdout_lock:
+            sys.stdout.write(entry)
     cli.stop(container_id)
     cli.remove_container(container_id)
     status_spinner.stop_spinner(spinner)
@@ -133,7 +139,7 @@ def update_container():
     stdout_lock = threading.Lock()
     spinner = status_spinner.start_spinner(stdout_lock)
     for event in json_events(cli.pull(repository=container_repo,
-                                      tag=container_tag, stream=True)):
+                                      tag=container_tag(), stream=True)):
         with stdout_lock:
             if 'error' in event:
                 print event['error'].encode('utf8')
@@ -150,7 +156,7 @@ def update_container():
 def debug(arg_list):
     cwd = os.getcwd()
     cli = get_cli()
-    image_name = "%s:%s" % (container_repo, container_tag)
+    image_name = "%s:%s" % (container_repo, container_tag())
     bind_dirs = mount_volumes()
 
     container_data = cli.create_container(image=image_name,
@@ -212,7 +218,7 @@ def darwin_debug(command, bind_dirs):
     for directory in bind_dirs:
         args.append(volume_fmt)
         args.append(directory)
-    image_name = "%s:%s" % (container_repo, container_tag)
+    image_name = "%s:%s" % (container_repo, container_tag())
     args.append(image_name)
     args = args + command
     subprocess.call(args)
