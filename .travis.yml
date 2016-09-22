@@ -1,5 +1,8 @@
 sudo: required
 
+notifications:
+  slack: openkosmos:cMflkK5yPr27bYK0mMRjYsPJ
+
 language: python
 
 python:
