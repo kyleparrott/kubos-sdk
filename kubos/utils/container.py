@@ -22,7 +22,7 @@ import sys
 import time
 import threading
 
-from . import status_spinner
+from . import status_spinner, sdk
 from docker import Client
 from pip.utils import ensure_dir, get_installed_version
 from project import get_local_link_file, module_key, target_key, target_mount_dir
@@ -63,7 +63,7 @@ def pass_through(*args):
             fix_permissions()
     except docker.errors.NotFound:
         print "The correct container was not found"
-        print "Please run `kubos update` and try again"
+        print "Please run `kubos update-container` and try again"
 
 
 def fix_permissions():
@@ -77,12 +77,13 @@ def fix_permissions():
     run_container(arg_list)
 
 
-def run_container(arg_list):
+def run_container(arg_list, volumes=None):
     cwd = os.getcwd()
     cli = get_cli()
 
     image_name = "%s:%s" % (container_repo, container_tag())
-    host_config = cli.create_host_config(binds=mount_volumes())
+    vols = volumes or mount_volumes()
+    host_config = cli.create_host_config(binds=vols)
     container_data = cli.create_container(image=image_name,
                                           command=arg_list,
                                           host_config=host_config,
@@ -184,8 +185,16 @@ def debug(arg_list):
 
 def mount_volumes():
     #mount configuration for linked modules
+    mnt_point = '/kubos-sdk/'
     cwd = os.getcwd()
-    bind_dirs = []
+    bind_dirs = ['%s:%s' % (sdk.CONTAINER_DIR, mnt_point)]
+
+    if os.path.isdir(sdk.KUBOS_MODULES):
+        bind_dirs.append('%s:%s' % (sdk.KUBOS_MODULES, '/usr/lib/yotta_modules'))
+    if os.path.isdir(sdk.KUBOS_TARGETS):
+        bind_dirs.append('%s:%s' % (sdk.KUBOS_TARGETS, '/usr/lib/yotta_targets'))
+    if os.path.isdir(sdk.KUBOS_EXAMPLES):
+        bind_dirs.append('%s:%s' % (sdk.KUBOS_EXAMPLES, '/examples'))
     local_link_file = get_local_link_file()
     if os.path.isfile(local_link_file):
         with open(local_link_file, 'r') as link_file:

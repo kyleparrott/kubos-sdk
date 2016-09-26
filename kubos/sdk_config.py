@@ -19,7 +19,7 @@ import sys
 import time
 
 from appdirs import AppDirs
-from kubos.utils.sdk import get_sdk_attribute
+from utils.sdk import get_sdk_attribute
 from pip.utils import get_installed_version
 from utils import container
 

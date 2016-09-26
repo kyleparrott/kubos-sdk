@@ -77,7 +77,8 @@ def main():
     add_command('shrinkwrap', 'shrinkwrap', 'Create a yotta-shrinkwrap.json file to freeze dependency versions', help='free dependency versions')
     add_command('target', 'target', 'Set the target device', help='Set or display the current target device')
     add_command('test', 'test', 'Run the tests for the current module on the current target. Requires target support for cross-compiling targets', help='Run the tests for the current module or target')
-    add_command('update', 'update', 'Pull the latest kubos-sdk container', help='Pull latest kubos-sdk docker container')
+    add_command('update', 'update', 'Pull the latest kubos source tree', help='Pull latest kubos source tree')
+    add_command('update-container', 'update_container', 'Pull the latest kubos-sdk container', help='Pull latest kubos-sdk docker container')
     add_command('version', 'version', 'Show the current kubos-sdk version', help='Display version information')
 
     short_commands = {

@@ -18,8 +18,28 @@ import os
 
 from pkg_resources import resource_filename
 
-KUBOS_RESOURCE_DIR = os.path.join(resource_filename(__name__, ''), '..')
-SDK_MODULE_JSON = os.path.join(KUBOS_RESOURCE_DIR, 'module.json')
+KUBOS_RESOURCE_DIR = os.path.join(resource_filename('kubos', ''), '..')
+
+prod_path = os.path.abspath(resource_filename('kubos', 'module.json'))
+dev_path = os.path.join(os.path.abspath(__file__), '..', '..', '..', 'module.json')
+SDK_MODULE_JSON = prod_path if os.path.isfile(prod_path) else dev_path
+
+home_dir = os.path.expanduser('~')
+KUBOS_DIR = os.path.join(home_dir, '.kubos')
+
+prod_path = os.path.abspath(resource_filename('kubos.container', 'kubos-sdk.py'))
+dev_path = os.path.join(os.path.abspath(__file__), '..', '..', 'container', 'kubos-sdk.py')
+# Global scripts are installed inside the python module at /usr/local/lib...
+GLOBAL_CONTAINER_SCRIPT = prod_path if os.path.isfile(prod_path) else dev_path
+GLOBAL_CONTAINER_DIR = os.path.dirname(GLOBAL_CONTAINER_SCRIPT)
+# Container script exists at ~/.kubos/container/ becuase non-user directories ie /usr/... are not
+# by default mounted into docker containers on mac os.
+CONTAINER_DIR= os.path.join(KUBOS_DIR, 'container')
+CONTAINER_SCRIPT = os.path.join(CONTAINER_DIR, 'kubos-sdk.py')
+
+KUBOS_MODULES = os.path.join(KUBOS_DIR, 'yotta_modules')
+KUBOS_TARGETS = os.path.join(KUBOS_DIR, 'yotta_targets')
+KUBOS_EXAMPLES = os.path.join(KUBOS_DIR, 'examples')
 
 def get_sdk_attribute(attr):
     sdk_data = json.load(open(SDK_MODULE_JSON, 'r'))
@@ -27,3 +47,4 @@ def get_sdk_attribute(attr):
         return sdk_data[attr]
     else:
         return None
+
