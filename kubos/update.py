@@ -28,10 +28,13 @@ version = 'v%s' % sdk.get_sdk_attribute('version')
 repo_dir = os.path.join(sdk.KUBOS_DIR, '.repo')
 manifest_url = "git://github.com/kubostech/kubos-manifest"
 manifest_file_name = 'docker-manifest.xml'
-manifest_version_spec = 'refs/tags/%s' % version
 
 def addOptions(parser):
-    pass
+    '''
+    For CI and testing purposes you can specify the branch of the docker-manifest to initialize repo with
+    It will default to the matching tagged manifest if no 'custom' branch is provided
+    '''
+    parser.add_argument('branch', nargs='?', help='set a specific branch or revision of source to fetch')
 
 def execCommand(args, following_args):
     '''
@@ -44,10 +47,15 @@ def execCommand(args, following_args):
             consisten behavior.
     3) It initializes and syncs the kubos source to ~/.kubos
     '''
+    manifest_version_spec = 'refs/tags/%s' % version
+    if args.branch:
+        manifest_version_spec = args.branch
+
     start_dir = os.getcwd()
     if not os.path.isdir(sdk.KUBOS_DIR):
         os.makedirs(sdk.KUBOS_DIR)
     os.chdir(sdk.KUBOS_DIR)
+
     if not os.path.isfile(sdk.CONTAINER_SCRIPT):
         print 'Copying container script to %s' % sdk.CONTAINER_DIR
         try:
@@ -55,14 +63,15 @@ def execCommand(args, following_args):
         except:
             print 'There was an error copying the container script %s to its destination %s' % (sdk.GLOBAL_CONTAINER_DIR, sdk.CONTAINER_DIR)
             sys.exit(1)
+
     repo_file = os.path.join(sdk.KUBOS_DIR, 'repo')
     if not os.path.isfile(repo_file):
         print 'The repo tool was not found, fetching it now...'
         container.run_container(['cp', '/usr/bin/repo', sdk.KUBOS_DIR], ['%s:%s' % (sdk.KUBOS_DIR, sdk.KUBOS_DIR)])
+
     try:
-        if not os.path.isdir(repo_dir): #Repo only needs to be initialized once
-            print 'initializing Kubos Source Directory'
-            subprocess.check_call(['./repo', "init", "-u", manifest_url, "-m", manifest_file_name, "-b", manifest_version_spec, '--depth=1'])
+        print 'initializing Kubos Source Directory %s' % manifest_version_spec
+        subprocess.check_call(['./repo', "init", "-u", manifest_url, "-m", manifest_file_name, "-b", manifest_version_spec, '--depth=1'])
         print 'Syncing the Kubos Source Tree. This may take a while...'
         subprocess.check_call(['./repo', "sync"])
     except:
