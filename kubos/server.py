@@ -44,7 +44,7 @@ def execCommand(args, following_args):
 def start_server():
     current_target = target.get_current_target()
     flash_dir, lib_dir, exe_dir = get_dirs()
-    project.add_ld_library_path(lib_dir)
+    project.add_kubos_lib_path(lib_dir)
     if not current_target:
         print >>sys.stderr, 'Set a target hardware device and build your project before debugging'
         sys.exit(1)
